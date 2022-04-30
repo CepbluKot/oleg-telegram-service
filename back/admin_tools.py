@@ -1,7 +1,4 @@
 from main import ModelView, db, admin, flask_app, Migrate
-import admin_tools
-import api.booking_one_day
-migrate = Migrate(flask_app, db)
 
 from models.days_coonecta import Days
 from models.all_users_this_connecta import CompanyUsers
@@ -11,5 +8,9 @@ from models.booking_date_connecta import AllBooking
 from models.all_users_connectall import UsersConnectALL
 
 
-if __name__ == '__main__':
-    flask_app.run(host='0.0.0.0', debug=True)
+admin.add_view(ModelView(Days, db.session))
+admin.add_view(ModelView(CompanyUsers, db.session))
+admin.add_view(ModelView(MyService, db.session))
+admin.add_view(ModelView(MyStaff, db.session))
+admin.add_view(ModelView(UsersConnectALL, db.session))
+admin.add_view(ModelView(AllBooking, db.session))

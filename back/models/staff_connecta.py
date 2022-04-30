@@ -1,4 +1,4 @@
-from app import db
+from main import db
 
 
 class MyStaff(db.Model):
@@ -7,4 +7,6 @@ class MyStaff(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_staff = db.Column(db.String)
     service_staff = db.Column(db.JSON)
-    connect_tb = db.relationship('all_booking')
+
+    def __repr__(self):
+        return f"Staff ('{self.name_staff}')"

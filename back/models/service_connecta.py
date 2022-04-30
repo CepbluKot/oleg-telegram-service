@@ -1,4 +1,4 @@
-from app import db
+from main import db
 
 
 class MyService(db.Model):
@@ -7,4 +7,6 @@ class MyService(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_service = db.Column(db.String)
     price_service = db.Column(db.DECIMAL)
-    connect_tb = db.relationship('all_booking', lazy=True)
+
+    def __repr__(self):
+        return f"Service ('{self.name_service}')"
