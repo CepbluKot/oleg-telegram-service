@@ -8,7 +8,7 @@ class Days(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     day = db.Column(db.Date)
     free_items = db.Column(db.Integer)
-    staff_free = db.Column(db.JSON)
+    staff_free = db.Column(db.ARRAY(db.Integer))
 
     def __init__(self, day, free_items, staff_free):
         self.day = day

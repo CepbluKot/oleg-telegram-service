@@ -7,6 +7,7 @@ from models.service_connecta import MyService
 from models.staff_connecta import MyStaff
 from models.all_users_this_connecta import CompanyUsers
 
+import api.api_authentication as auth
 
 class InfoBookingSchema(ma.Schema):
     class Meta:
@@ -25,6 +26,7 @@ def _base_query():
 
 
 @flask_app.route('/api/booking/', methods=['GET'])
+@auth.admin_required()
 def get_all_booking():
     all_booking = _base_query()
     api_all_booking_schema = InfoBookingSchema(many=True)

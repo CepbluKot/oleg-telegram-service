@@ -1,6 +1,10 @@
 from main import ModelView, db, admin, flask_app, Migrate
 import admin_tools
-import api.booking_one_day
+
+import api.api_booking
+import api.api_services
+import api.api_authentication
+
 migrate = Migrate(flask_app, db)
 
 from models.days_coonecta import Days

@@ -1,4 +1,5 @@
 from main import db
+from sqlalchemy import Column
 
 
 ROLE_EMPLOYEE = 0
@@ -12,12 +13,11 @@ class UsersConnectALL(db.Model):
     name = db.Column(db.String)
     tg_id = db.Column(db.Integer)
     role = db.Column(db.Integer, default=ROLE_EMPLOYEE)
-    login = db.Column(db.String, nullable=False)
+    login = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.Unicode, nullable=False)
 
-    def __init__(self, new_name, new_tg, new_login, password, role=ROLE_EMPLOYEE):
+    def __init__(self, new_name, new_login, password, role=ROLE_EMPLOYEE):
         self.name = new_name
-        self.tg_id = new_tg
         self.login = new_login
         self.role = role
         self.password = password

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: cc2ee811f0b1
+Revision ID: bb1491c1238c
 Revises: 
-Create Date: 2022-04-29 14:45:47.327112
+Create Date: 2022-05-03 20:16:24.257470
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'cc2ee811f0b1'
+revision = 'bb1491c1238c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,7 +22,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('day', sa.Date(), nullable=True),
     sa.Column('free_items', sa.Integer(), nullable=True),
-    sa.Column('staff_free', sa.JSON(), nullable=True),
+    sa.Column('staff_free', sa.ARRAY(sa.Integer()), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('myservice_connecta',
@@ -34,7 +34,7 @@ def upgrade():
     op.create_table('mystaff_connecta',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name_staff', sa.String(), nullable=True),
-    sa.Column('service_staff', sa.JSON(), nullable=True),
+    sa.Column('service_staff', sa.ARRAY(sa.Integer()), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users_connectall',
@@ -45,7 +45,8 @@ def upgrade():
     sa.Column('role', sa.Integer(), nullable=True),
     sa.Column('login', sa.String(), nullable=False),
     sa.Column('password', sa.Unicode(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('login')
     )
     op.create_table('users_this_company',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),

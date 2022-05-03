@@ -17,9 +17,3 @@ class CompanyUsers(db.Model):
     def __repr__(self):
         return f"User ('{self.name_client}', {self.tg_id})"
 
-"""
-class UsersSchema(ma.Schema):
-    class Meta:
-        model = CompanyUsers
-        sqla_session = db.session
-"""
