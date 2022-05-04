@@ -4,6 +4,7 @@ import admin_tools
 import api.api_booking
 import api.api_services
 import api.api_authentication
+import api.api_client_company
 
 migrate = Migrate(flask_app, db)
 

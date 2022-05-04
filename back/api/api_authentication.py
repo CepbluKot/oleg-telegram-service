@@ -41,7 +41,7 @@ def login():
         return jsonify({"msg": "Bad username or password"}), 401
 
 
-@flask_app.route("/registers", methods=["POST"])
+@flask_app.route("/register", methods=["POST"])
 def register():
     username = request.json.get("username", None)
     password = request.json.get("password", None)
