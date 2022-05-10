@@ -1,5 +1,4 @@
-from main import db, ma
-from models.booking_date_connecta import AllBooking
+from setting_web import db, ma
 
 
 class Days(db.Model):
@@ -7,7 +6,7 @@ class Days(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     day = db.Column(db.Date)
-    free_items = db.Column(db.Integer)
+    service_this_day = db.Column(db.JSON)
     staff_free = db.Column(db.ARRAY(db.Integer))
 
     def __init__(self, day, free_items, staff_free):
@@ -17,8 +16,3 @@ class Days(db.Model):
 
     def __repr__(self):
         return f"Day ('{self.day}')"
-
-
-class DaysShema(ma.Schema):
-    class Meta:
-        fields = ('id', 'day', 'free_items', 'staff_free')

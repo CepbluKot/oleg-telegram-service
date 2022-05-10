@@ -1,6 +1,4 @@
-from main import db
-from sqlalchemy import Column
-
+from setting_web import db
 
 ROLE_EMPLOYEE = 0
 ROLE_ADMIN = 1

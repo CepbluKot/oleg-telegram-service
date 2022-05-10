@@ -1,4 +1,4 @@
-from main import ModelView, db, admin, flask_app, jwt, get_jwt, verify_jwt_in_request, create_access_token, jwt_required
+from setting_web import db, flask_app, get_jwt, verify_jwt_in_request, create_access_token
 from functools import wraps
 
 from flask import jsonify, request
@@ -45,7 +45,7 @@ def login():
 def register():
     username = request.json.get("username", None)
     password = request.json.get("password", None)
-    name = request.json.get("password", None)
+    name = request.json.get("name", None)
 
     hash_password = generate_password_hash(password)
     new_user = UsersConnectALL(name, username, hash_password)

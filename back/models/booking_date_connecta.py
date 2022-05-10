@@ -1,4 +1,4 @@
-from main import db, ma
+from setting_web import db
 
 
 class AllBooking(db.Model):

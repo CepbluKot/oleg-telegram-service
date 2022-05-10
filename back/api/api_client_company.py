@@ -1,8 +1,8 @@
 from flask import jsonify, request
-from main import flask_app, db, ma
+from setting_web import flask_app, db, ma
 from datetime import date, datetime, time
 from models.booking_date_connecta import AllBooking
-from models.days_coonecta import Days, DaysShema
+from models.days_coonecta import Days
 from models.service_connecta import MyService
 from models.staff_connecta import MyStaff
 from models.all_users_this_connecta import CompanyUsers
@@ -75,7 +75,7 @@ def all_cl_web():
 
 
 @flask_app.route('/api/client/filter_tg/<int:tg_id>/', methods=['GET'])
-@flask_app.route('/api/client/filter_tg/<int:tg_id>/update/<string:new_name>_<strint:new_phone_num>', methods=['PUT'])
+@flask_app.route('/api/client/filter_tg/<int:tg_id>/update/<string:new_name>_<string:new_phone_num>', methods=['PUT'])
 def client_info_tg_web(tg_id, new_name=None, new_phone_num=None):
     if request.method == 'PUT':
         update_info_us(tg_id, new_name, new_phone_num)

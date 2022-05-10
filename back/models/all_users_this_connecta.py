@@ -1,4 +1,4 @@
-from main import db
+from setting_web import db
 
 class CompanyUsers(db.Model):
     __tablename__ = 'users_this_company'

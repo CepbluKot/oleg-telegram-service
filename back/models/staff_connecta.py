@@ -1,4 +1,4 @@
-from main import db
+from setting_web import db
 
 
 class MyStaff(db.Model):
