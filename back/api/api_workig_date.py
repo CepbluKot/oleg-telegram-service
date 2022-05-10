@@ -27,7 +27,7 @@ def all_working_date():
     return api_all_work_date.dump(all_date)
 
 
-def this_work_date(check_day=None, name_service=None, between_start=None, between_end=None):
+def work_date_service(check_day=None, name_service=None, between_start=None, between_end=None):
     this_day = _base_query
 
     if name_service:

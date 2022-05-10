@@ -16,12 +16,17 @@ class InfoServiceSchema(ma.Schema):
         fields = ('id', 'name_service', 'price_service', 'name_service', 'name_staff')
 
 
-@flask_app.route('/api/service/', methods=['Get'])
 def all_service():
     all_service_data = _base_query
     api_all_booking_schema = InfoServiceSchema(many=True)
 
-    return jsonify(api_all_booking_schema.dump(all_service_data))
+    return api_all_booking_schema.dump(all_service_data)
+
+
+@flask_app.route('/api/service/', methods=['GET'])
+def all_service_web():
+    res_data = all_service()
+    return jsonify(res_data)
 
 
 @flask_app.route('/api/service/filter_name/<string:name_service>', methods=['GET'])
