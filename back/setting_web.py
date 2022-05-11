@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from flask_cors import CORS, cross_origin
 
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt
@@ -15,7 +16,9 @@ from flask_jwt_extended import jwt_required
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 flask_app = Flask(__name__)
+CORS(flask_app, supports_credentials=True)
 
+flask_app.config['CORS_HEADERS'] = 'application/json'
 flask_app.config['FLASK_ENV'] = 'development'
 flask_app.config['SECRET_KEY'] = 'pop'
 flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

@@ -1,4 +1,4 @@
-from setting_web import db, flask_app, get_jwt, verify_jwt_in_request, create_access_token
+from setting_web import db, flask_app, get_jwt, verify_jwt_in_request, create_access_token, cross_origin
 from functools import wraps
 
 from flask import jsonify, request
@@ -23,7 +23,8 @@ def admin_required():
     return wrapper
 
 
-@flask_app.route("/login", methods=["POST"])
+@flask_app.route("/login", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["*"], supports_credentials=True)
 def login():
     username = request.json.get("username", None)
     password = request.json.get("password", None)
@@ -42,6 +43,7 @@ def login():
 
 
 @flask_app.route("/register", methods=["POST"])
+@cross_origin(origins=["*"], supports_credentials=True)
 def register():
     username = request.json.get("username", None)
     password = request.json.get("password", None)
