@@ -1,4 +1,3 @@
-from flask import jsonify, request
 from setting_web import flask_app, db, ma
 from datetime import date, datetime, time
 from models.booking_date_connecta import AllBooking
@@ -8,7 +7,9 @@ from models.staff_connecta import MyStaff
 from models.all_users_this_connecta import CompanyUsers
 
 
-_base_query = db.session.query(MyService)
+def _base_query():
+    res_query = db.session.query(MyService)
+    return res_query
 
 
 class InfoServiceSchema(ma.Schema):
@@ -17,36 +18,24 @@ class InfoServiceSchema(ma.Schema):
 
 
 def all_service():
-    all_service_data = _base_query
+    all_service_data = _base_query()
     api_all_booking_schema = InfoServiceSchema(many=True)
 
     return api_all_booking_schema.dump(all_service_data)
 
 
-@flask_app.route('/api/service/', methods=['GET'])
-def all_service_web():
-    res_data = all_service()
-    return jsonify(res_data)
-
-
-@flask_app.route('/api/service/filter_name/<string:name_service>', methods=['GET'])
-def filter_name(name_service):
-    flt_service_data = _base_query
-    flt_service_data = flt_service_data.filter(MyService.name_service == name_service)
-
-
-@flask_app.route('/api/service/filter_staff/<string:name_staff>/', methods=['GET'])
-@flask_app.route('/api/service/filter_staff/<string:name_staff>/<string:name_service>', methods=['GET'])
-def filter_staff(name_staff, name_service=None):
-    flt_service_data = _base_query
-
-    query_staff_ar = db.session.query(MyStaff.service_staff).filter(MyStaff.name_staff == name_staff).all()
-    service_staff = query_staff_ar[0][0]
+def get_filter_services(name_staff=None, name_service=None):
+    data_services = _base_query()
 
     if name_service != None:
-        flt_service_data = flt_service_data.filter(MyService.name_service == name_service)
+        data_services = data_services.filter(MyService.name_service == name_service)
 
-    flt_service_data = flt_service_data.filter(MyService.id == db.any_(service_staff))
+    if name_staff != None:
+        query_staff_ar = db.session.query(MyStaff.service_staff).filter(MyStaff.name_staff == name_staff).all()
+        service_staff = query_staff_ar[0][0]
+
+        data_services = data_services.filter(MyService.id == db.any_(service_staff))
+
     api_all_booking_schema = InfoServiceSchema(many=True)
+    return api_all_booking_schema.dump(data_services)
 
-    return jsonify(api_all_booking_schema.dump(flt_service_data))

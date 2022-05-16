@@ -65,4 +65,3 @@ def weeks_in_all_date(name_service=None):
                 break
 
     return weeks_day
-
