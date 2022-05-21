@@ -12,23 +12,34 @@ from datetime import date, datetime
 from sqlalchemy import func
 
 now_date = datetime.now()
-_base_query = db.session.query(Days).filter(Days.day > date(year=now_date.year, month=now_date.month, day=now_date.day))
+cl = Calendar()
 
+
+def _base_query():
+    query = db.session.query(Days).filter(Days.day > date(year=now_date.year, month=now_date.month, day=now_date.day))
+    return query
 
 class InfoDaysWorkingSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'day', 'free_items', 'staff_free')
+        fields = ('id', 'day', 'service_this_day', 'staff_free')
 
 
 def all_working_date():
-    all_date = _base_query
+    all_date = _base_query()
 
     api_all_work_date = InfoDaysWorkingSchema(many=True)
     return api_all_work_date.dump(all_date)
 
 
-def work_date_service(check_day=None, name_service=None, between_start=None, between_end=None):
-    this_day = _base_query
+def check_exit_day(this_ck_date):
+    ck_all_date = _base_query()
+    status = ck_all_date.filter_by(Days.day == this_ck_date).first() is not None
+
+    return status
+
+
+def get_filter_work_day(check_day=None, name_service=None, between_start=None, between_end=None):
+    this_day = _base_query()
 
     if name_service:
         this_day = this_day.filter(Days.service_this_day.op('->')(name_service) != None)
@@ -43,25 +54,29 @@ def work_date_service(check_day=None, name_service=None, between_start=None, bet
     return api_all_work_date.dump(this_day)
 
 
+
+def find_boundaries_week(day):
+    mycal = cl.monthdatescalendar(day.year, day.month)
+    start_end_week = []
+
+    for week in mycal:
+        if day in week:
+            start_end_week.append(week[0])
+            start_end_week.append(week[-1])
+
+            if start_end_week not in day:
+                day.append(start_end_week)
+            break
+    return start_end_week
+
+
 def weeks_in_all_date(name_service=None):
-    all_date = _base_query.all()
+    all_date = _base_query().all()
     weeks_day = []
 
-    cl = Calendar()
     for work_day in all_date:
         if not name_service and work_day.service_this_day.get(name_service):
             continue
-
-        mycal = cl.monthdatescalendar(work_day.day.year, work_day.day.month)
-        start_end_week = []
-
-        for week in mycal:
-            if work_day.day in week:
-                start_end_week.append(week[0])
-                start_end_week.append(week[-1])
-
-                if start_end_week not in weeks_day:
-                    weeks_day.append(start_end_week)
-                break
+        weeks_day.append(work_day.day)
 
     return weeks_day

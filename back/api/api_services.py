@@ -39,3 +39,8 @@ def get_filter_services(name_staff=None, name_service=None):
     api_all_booking_schema = InfoServiceSchema(many=True)
     return api_all_booking_schema.dump(data_services)
 
+
+def check_exit_service(name_service):
+    status = _base_query().filter_by(MyService.name_service == name_service).first() is not None
+    return status
+
