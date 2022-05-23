@@ -5,7 +5,7 @@ from flask import jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from models.all_users_connectall import UsersConnectALL
-
+from bissnes_logic.insert_data_modul import add_users_connecta
 
 def admin_required():
     def wrapper(fn):
@@ -49,9 +49,4 @@ def register():
     password = request.json.get("password", None)
     name = request.json.get("name", None)
 
-    hash_password = generate_password_hash(password)
-    new_user = UsersConnectALL(name, username, hash_password)
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify('Successful registration')
+    return jsonify(add_users_connecta(password, username, name))

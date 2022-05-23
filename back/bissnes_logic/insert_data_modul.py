@@ -6,22 +6,51 @@ from models.days_coonecta import Days
 from models.service_connecta import MyService
 from models.staff_connecta import MyStaff
 from models.all_users_this_connecta import CompanyUsers
+from models.all_users_connectall import UsersConnectALL
 
 from api.api_workig_date import get_filter_work_day, check_exit_day
 from api.api_services import get_filter_services, check_exit_service
 from api.api_client_company import get_filter_client
 
 from bissnes_logic.calendar_logic import freedom_items
+from bissnes_logic.validators import RegisterUserConnectA, RegisterСlient, ValidationError
+
 from datetime import date, time, datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
+
+"""     USERS - CONNECTA     """
+
+
+def add_users_connecta(password, username, name):
+    try:
+        RegisterUserConnectA(name=name, username=username, password=password)
+    except ValidationError as error:
+        return error.json(indent=5)
+
+    hash_password = generate_password_hash(password)
+    new_user = UsersConnectALL(name, username, hash_password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return "successful registration"
 
 
 """    CLIENT     """
 
 
 def add_new_us(tg_id, name, phone):
+    try:
+        RegisterСlient(name=name, phone=phone)
+    except ValidationError as error:
+        return error.json(indent=5)
+
     new_us = CompanyUsers(name, tg_id, phone)
     db.session.add(new_us)
     db.session.commit()
+
+    return "successful add client"
 
 
 """   BOOKING    """

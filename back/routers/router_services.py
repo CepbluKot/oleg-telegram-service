@@ -8,10 +8,6 @@ from api.api_services import *
 from bissnes_logic.insert_data_modul import add_service
 
 
-#forms
-from forms.insert_forms import ServiceAddForm
-
-
 @flask_app.route('/api/service/', methods=['GET', 'POST'])
 def all_service_web():
 
@@ -22,6 +18,7 @@ def all_service_web():
 
     res_data = all_service()
     return jsonify(res_data)
+
 
 @flask_app.route('/api/service/filter_staff/<string:name_staff>/', methods=['GET'])
 @flask_app.route('/api/service/filter_staff/<string:name_staff>/<string:name_service>', methods=['GET'])

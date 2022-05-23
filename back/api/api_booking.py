@@ -6,7 +6,6 @@ from models.service_connecta import MyService
 from models.staff_connecta import MyStaff
 from models.all_users_this_connecta import CompanyUsers
 
-import api.api_authentication as auth
 from api.api_workig_date import find_boundaries_week
 
 class InfoBookingSchema(ma.Schema):

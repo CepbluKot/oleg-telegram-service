@@ -1,6 +1,7 @@
 from setting_web import db, flask_app, Migrate
 migrate = Migrate(flask_app, db)
 
+from models.default_setting_users import DefaultSetting
 from models.days_coonecta import Days
 from models.all_users_this_connecta import CompanyUsers
 from models.service_connecta import MyService
