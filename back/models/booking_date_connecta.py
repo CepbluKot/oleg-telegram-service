@@ -8,7 +8,7 @@ class AllBooking(db.Model):
     time_start = db.Column(db.Time)
     time_end = db.Column(db.Time)
 
-    signup_date = db.Column(db.Integer, db.ForeignKey('days_connecta.id')) #день_записи
+    signup_date = db.Column(db.Integer, db.ForeignKey('event_company.id')) #день_записи
     connect_day = db.relationship('Days')
 
     signup_user = db.Column(db.Integer, db.ForeignKey('users_this_company.id')) #человек который записался

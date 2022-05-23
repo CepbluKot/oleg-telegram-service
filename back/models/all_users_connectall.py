@@ -14,6 +14,9 @@ class UsersConnectALL(db.Model):
     login = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.Unicode, nullable=False)
 
+    default_set = db.Column(db.Integer, db.ForeignKey('default_setting.id'))
+    connect_default = db.relationship('DefaultSetting')
+
     def __init__(self, new_name, new_login, password, role=ROLE_EMPLOYEE):
         self.name = new_name
         self.login = new_login
