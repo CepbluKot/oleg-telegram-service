@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator, ValidationError, constr, Json, conint
+from pydantic import BaseModel, validator, root_validator,constr, conint
 from phonenumbers import (
     NumberParseException,
     PhoneNumberFormat,
@@ -9,7 +9,8 @@ from phonenumbers import (
     parse as parse_phone_number,
 )
 from datetime import date, time, datetime
-from typing import Optional, Dict
+from typing import Optional, List
+from typing_extensions import TypedDict
 
 
 class RegisterUserConnectA(BaseModel):
@@ -41,15 +42,15 @@ class RegisterСlient(BaseModel):
         return format_number(n, PhoneNumberFormat.NATIONAL if n.country_code == 7 else PhoneNumberFormat.INTERNATIONAL)
 
 
-class ServiceEvent(BaseModel):
-    """Словарь одной услуги"""
-    name: str
-    items: conint(gt=0)
+class ServiceEvent(TypedDict, total=False):
+    """Словарь услуги для события"""
+    name_service: str
+    quantity: conint(gt=1)
 
 
-class GroupServiceEvent(BaseModel):
+class GroupServiceEvent(TypedDict):
     """Словарь группы услуг"""
-    group_event_service: Dict[ServiceEvent]
+    group_event_service: ServiceEvent
 
 
 class NewEvent(BaseModel):
@@ -59,18 +60,23 @@ class NewEvent(BaseModel):
     end_event: time
     service_this_day: Optional[GroupServiceEvent]
 
+    @root_validator(allow_reuse=True)
+    def check_reliability_date(cls, values):
+        if ('start_event' not in values) and ('end_event' not in values):
+            raise ValueError('error typing time')
+
+        start, end = values.get('start_event'), values.get('end_event')
+
+        if start >= end:
+            raise ValueError('start event value less than end event value')
+        return values
+
     @validator('day', pre=True)
     def check_reliability_date(cls, v,  values, **kwargs):
         now_date = datetime.now()
-        if 'day' in values and v > date(year=now_date.year, month=now_date.month, day=now_date.day):
+        if 'day' not in values and v > date(year=now_date.year, month=now_date.month, day=now_date.day):
             raise ValueError('dates well, does it exist or is it not valid')
         return v
-
-    @validator('start_event', 'end_event')
-    def check_reliability_date(cls, start_event: time, end_event: time):
-        if start_event > end_event:
-            raise ValueError('start event value less than end event value')
-        return start_event, end_event
 
 
 

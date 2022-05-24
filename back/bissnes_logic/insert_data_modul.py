@@ -13,7 +13,8 @@ from api.api_services import get_filter_services, check_exit_service
 from api.api_client_company import get_filter_client
 
 from bissnes_logic.calendar_logic import freedom_items
-from bissnes_logic.validators import RegisterUserConnectA, RegisterСlient, ValidationError
+from bissnes_logic.validators import RegisterUserConnectA, RegisterСlient
+from pydantic import ValidationError
 
 from datetime import date, time, datetime
 from werkzeug.security import generate_password_hash, check_password_hash

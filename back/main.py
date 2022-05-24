@@ -1,7 +1,7 @@
 from setting_web import flask_app
 
 import routers.admin_tools
-#import routers.router_booking
+import routers.router_booking
 import routers.router_services
 import routers.routers_client_company
 import routers.routers_working_date
