@@ -2,7 +2,7 @@ from flask import jsonify, request
 from setting_web import flask_app, db, ma, cross_origin
 from datetime import date, datetime, time
 from models.booking_date_connecta import AllBooking
-from models.days_coonecta import Days
+from models.days_coonecta import Event
 from models.service_connecta import MyService
 from models.staff_connecta import MyStaff
 from models.all_users_this_connecta import CompanyUsers
@@ -100,7 +100,7 @@ def preparation_insert_work_day(info_day: dict):
             buffer_update_day[one_day["day"]] = one_day["service"]
         else:
             this_day = datetime.strptime(info_day["day"], '%Y-%m-%d').date()
-            new_work_day = Days(this_day, info_day["service"])
+            new_work_day = Event(this_day, info_day["service"])
             buffer_add_day[info_day["day"]] = new_work_day
 
 

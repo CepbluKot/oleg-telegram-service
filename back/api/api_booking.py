@@ -1,7 +1,7 @@
 from setting_web import flask_app, db, ma
 from datetime import date, datetime, time
 from models.booking_date_connecta import AllBooking
-from models.days_coonecta import Days
+from models.days_coonecta import Event
 from models.service_connecta import MyService
 from models.staff_connecta import MyStaff
 from models.all_users_this_connecta import CompanyUsers
@@ -16,9 +16,9 @@ class InfoBookingSchema(ma.Schema):
 def _base_query():
     """Базовый запрос"""
     booking = db.session.query(AllBooking.id, AllBooking.time_start, AllBooking.time_end, CompanyUsers.name_client, CompanyUsers.tg_id,
-                               CompanyUsers.phone_num, MyStaff.name_staff, MyService.name_service, Days.day)
+                               CompanyUsers.phone_num, MyStaff.name_staff, MyService.name_service, Event.day)
     booking = booking.join(CompanyUsers)
-    booking = booking.join(Days)
+    booking = booking.join(Event)
     booking = booking.join(MyService)
     booking = booking.join(MyStaff)
 
@@ -41,7 +41,7 @@ def get_filter_booking(my_service=None, my_date=None, date_start=None, date_end=
 
     if my_date is not None:
         this_date = datetime.strptime(my_date, '%Y-%m-%d').date()
-        all_booking_service = all_booking_service.filter(db.and_(MyService.name_service == my_service, Days.day == this_date))
+        all_booking_service = all_booking_service.filter(db.and_(MyService.name_service == my_service, Event.day == this_date))
 
     if (date_start is not None) and (date_end is not None) and (my_date is None):
         try:
@@ -49,7 +49,7 @@ def get_filter_booking(my_service=None, my_date=None, date_start=None, date_end=
             cor_date_end = datetime.strptime(date_end, '%Y-%m-%d').date()
         except ValueError:
             return {"Error": "not correct query"}
-        all_booking_service = all_booking_service.filter(Days.day.between(cor_date_start, cor_date_end))
+        all_booking_service = all_booking_service.filter(Event.day.between(cor_date_start, cor_date_end))
 
     if g_time_start is not None and g_time_end is not None:
         time_start = time(hour=g_time_start)

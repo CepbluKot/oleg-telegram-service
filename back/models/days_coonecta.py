@@ -1,7 +1,7 @@
 from setting_web import db, ma
 
 
-class Days(db.Model):
+class Event(db.Model):
     __tablename__ = 'event_company'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -10,7 +10,6 @@ class Days(db.Model):
     start_event = db.Column(db.Time)
     end_event = db.Column(db.Time)
     delta = db.Column(db.Time)
-    service_this_day = db.Column(db.JSON)
     staff_free = db.Column(db.ARRAY(db.Integer))
 
     def __init__(self, day, start_event, end_event, service_this_day, staff_free=None):
