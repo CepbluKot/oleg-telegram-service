@@ -12,14 +12,17 @@ def _base_query():
     return res_query
 
 
-class InfoServiceSchema(ma.Schema):
+class ServiceSchema(ma.SQLAlchemyAutoSchema):
+    """Дата класс сервиса"""
     class Meta:
-        fields = ('id', 'name_service', 'price_service', 'name_service', 'name_staff')
+        model = MyService
+        load_instance = True
+        include_relationships = True
 
 
 def all_service():
     all_service_data = _base_query()
-    api_all_booking_schema = InfoServiceSchema(many=True)
+    api_all_booking_schema = ServiceSchema(many=True)
 
     return api_all_booking_schema.dump(all_service_data)
 
@@ -36,7 +39,7 @@ def get_filter_services(name_staff=None, name_service=None):
 
         data_services = data_services.filter(MyService.id == db.any_(service_staff))
 
-    api_all_booking_schema = InfoServiceSchema(many=True)
+    api_all_booking_schema = ServiceSchema(many=True)
     return api_all_booking_schema.dump(data_services)
 
 

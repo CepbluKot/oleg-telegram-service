@@ -5,6 +5,7 @@ from models.service_event import ServiceEvent
 
 from calendar import Calendar
 from datetime import date, datetime
+from api.api_services import ServiceSchema
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -25,14 +26,8 @@ def _base_query_se():
     return query
 
 
-class ServiceSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = MyService
-        load_instance = True
-        include_relationships = True
-
-
 class ServiceEventSchema(ma.SQLAlchemyAutoSchema):
+    """Дата класс прикрепления к одному дню"""
     class Meta:
         model = ServiceEvent
         load_instance = True
@@ -42,6 +37,7 @@ class ServiceEventSchema(ma.SQLAlchemyAutoSchema):
 
 
 class EventSchema(ma.SQLAlchemyAutoSchema):
+    """Дата класс события"""
     class Meta:
         model = Event
         load_instance = True
@@ -51,17 +47,11 @@ class EventSchema(ma.SQLAlchemyAutoSchema):
 
 
 def all_working_date():
+    """Все записи"""
     all_date = _base_query().all()
     api_all_work_date = EventSchema(many=True)
 
     return api_all_work_date.dump(all_date)
-
-
-def check_exit_day(this_ck_date):
-    ck_all_date = _base_query()
-    status = ck_all_date.filter_by(Event.day == this_ck_date).first() is not None
-
-    return status
 
 
 def get_filter_work_day(name_event=None,
@@ -99,7 +89,15 @@ def find_boundaries_week(day):
     return start_end_week
 
 
-def weeks_in_all_date(name_service=None):
+def check_exit_event(this_ck_date):
+    ck_all_date = _base_query()
+    status = ck_all_date.filter_by(Event.day == this_ck_date).first() is not None
+
+    return status
+
+
+def weeks_in_all_event(name_service=None):
+    """Дни, когда активна услуга"""
     all_data = _base_query_se()
     weeks_day = []
 

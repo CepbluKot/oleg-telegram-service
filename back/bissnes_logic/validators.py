@@ -12,6 +12,8 @@ from datetime import date, time, datetime
 from typing import Optional, List
 from typing_extensions import TypedDict
 
+from api.api_services import check_exit_service as verify_exit_service
+
 
 class RegisterUserConnectA(BaseModel):
     name: constr(min_length=2, max_length=20)
@@ -62,7 +64,7 @@ class NewEvent(BaseModel):
 
     @root_validator(allow_reuse=True)
     def check_reliability_date(cls, values):
-        if ('start_event' not in values) and ('end_event' not in values):
+        if ('start_event' not in values) or ('end_event' not in values):
             raise ValueError('error typing time')
 
         start, end = values.get('start_event'), values.get('end_event')
@@ -74,9 +76,36 @@ class NewEvent(BaseModel):
     @validator('day', pre=True)
     def check_reliability_date(cls, v,  values, **kwargs):
         now_date = datetime.now()
-        if 'day' not in values and v > date(year=now_date.year, month=now_date.month, day=now_date.day):
+        if 'day' not in values or v > date(year=now_date.year, month=now_date.month, day=now_date.day):
             raise ValueError('dates well, does it exist or is it not valid')
         return v
+
+
+
+class BookingSchema(BaseModel):
+    time_start: time
+    time_end: time
+    id_event: conint(gt=1)
+    tg_id: conint(gt=4)
+    name_service: constr(min_length=2)
+
+    @root_validator(allow_reuse=True)
+    def check_reliability_date(cls, values):
+        if ('time_start' not in values) or ('time_end' not in values):
+            raise ValueError('error typing time')
+
+        start, end = values.get('time_start'), values.get('time_end')
+
+        if start >= end:
+            raise ValueError('start event value less than end event value')
+        return values
+
+    @validator('name_service')
+    def check_exit_service(cls, v,  values, **kwargs):
+        if 'name_service' not in values or not verify_exit_service(v):
+            raise ValueError('error typing time')
+        return values
+
 
 
 

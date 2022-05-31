@@ -6,22 +6,26 @@ from models.service_connecta import MyService
 from models.staff_connecta import MyStaff
 from models.all_users_this_connecta import CompanyUsers
 
-from api.api_workig_date import find_boundaries_week
+from api.api_workig_date import find_boundaries_week, EventSchema
+from api.api_client_company import InfoUsersComSchema
+from api.api_services import ServiceSchema
 
-class InfoBookingSchema(ma.Schema):
+
+class InfoBookingSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        fields = ('id', 'time_start', 'time_end', 'name_client', 'tg_id', 'phone_num', 'name_service', 'day')
+        model = AllBooking
+        load_instance = True
+        include_relationships = True
+
+    connect_user = ma.Nested(InfoUsersComSchema())
+    connect_event = ma.Nested(EventSchema())
+    connect_service = ma.Nested(ServiceSchema())
+
 
 
 def _base_query():
     """Базовый запрос"""
-    booking = db.session.query(AllBooking.id, AllBooking.time_start, AllBooking.time_end, CompanyUsers.name_client, CompanyUsers.tg_id,
-                               CompanyUsers.phone_num, MyStaff.name_staff, MyService.name_service, Event.day)
-    booking = booking.join(CompanyUsers)
-    booking = booking.join(Event)
-    booking = booking.join(MyService)
-    booking = booking.join(MyStaff)
-
+    booking = AllBooking.query
     return booking
 
 
@@ -40,7 +44,10 @@ def get_filter_booking(my_service=None, my_date=None, date_start=None, date_end=
         all_booking_service = all_booking_service.filter(MyService.name_service == my_service)
 
     if my_date is not None:
-        this_date = datetime.strptime(my_date, '%Y-%m-%d').date()
+        try:
+            this_date = datetime.strptime(my_date, '%Y-%m-%d').date()
+        except:
+            return {"Error": "not correct data-format in query"}
         all_booking_service = all_booking_service.filter(db.and_(MyService.name_service == my_service, Event.day == this_date))
 
     if (date_start is not None) and (date_end is not None) and (my_date is None):
@@ -48,7 +55,7 @@ def get_filter_booking(my_service=None, my_date=None, date_start=None, date_end=
             cor_date_start = datetime.strptime(date_start, '%Y-%m-%d').date()
             cor_date_end = datetime.strptime(date_end, '%Y-%m-%d').date()
         except ValueError:
-            return {"Error": "not correct query"}
+            return {"Error": "not correct data-format in query"}
         all_booking_service = all_booking_service.filter(Event.day.between(cor_date_start, cor_date_end))
 
     if g_time_start is not None and g_time_end is not None:
@@ -66,9 +73,9 @@ def get_indo_calendar(select_day=None):
         try:
             cor_date = datetime.strptime(select_day, '%Y-%m-%d').date()
         except ValueError:
-            return {"Error": "not correct query"}
+            return {"Error": "not correct data-format in query"}
     else:
-        return {"Error": "not correct query"}
+        return {"Error": "not correct data-format in query"}
 
     start_end_weeks = find_boundaries_week(cor_date)
     return get_filter_booking(date_start=start_end_weeks[0], date_end=start_end_weeks[-1])
