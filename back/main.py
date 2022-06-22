@@ -1,13 +1,9 @@
-from setting_web import flask_app
+from setting_web import flask_app, Blueprint
+from flask_restplus import Api
+from routers.namespace import blueprint
 
-import routers.admin_tools
-#import routers.router_booking
-import routers.router_services
-import routers.routers_client_company
-import routers.routers_working_date
-import api.api_authentication
-
-import bissnes_logic.insert_data_modul
+from routers import admin_tools
+flask_app.register_blueprint(blueprint)
 
 if __name__ == '__main__':
     flask_app.run(host='0.0.0.0', debug=True)
