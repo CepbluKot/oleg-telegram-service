@@ -1,10 +1,10 @@
-from datetime import datetime, time
 from queries.queries_workig_date import find_boundaries_week
 from models.all_models import *
 
 from .dataclass_booking import FilterBooking as Filter
 from .booking_schema import InfoBookingSchema
 
+from pprint import pprint
 
 def _base_query():
     """Базовый запрос"""
@@ -22,7 +22,8 @@ def get_all_booking():
 
 def get_filter_booking(new_filter: Filter):
     all_booking_service = _base_query()
-    
+
+    """Filter about people"""
     if new_filter.clients_tg_id_filter.tg_id is not None:
         all_booking_service = all_booking_service.filter(CompanyUsers.tg_id.in_(new_filter.clients_tg_id_filter.tg_id))
 
@@ -32,11 +33,12 @@ def get_filter_booking(new_filter: Filter):
     if new_filter.clients_tg_id_filter.name is not None:
         all_booking_service = all_booking_service.filter(CompanyUsers.name_client.in_(new_filter.clients_tg_id_filter.name))
 
+    """Filter about service"""
     if new_filter.service_filter is not None:
         all_booking_service = all_booking_service.filter(MyService.name_service == new_filter.service_filter)
 
+    """Filter about Date and Time"""
     if new_filter.this_date_filter is not None:
-
         all_booking_service = all_booking_service.filter(MyService.name_service.in_(new_filter.date_start_filter))
 
     if (new_filter.date_start_filter is not None) and (new_filter.date_end_filter is not None) \
@@ -55,10 +57,15 @@ def get_filter_booking(new_filter: Filter):
 
 
 def get_indo_calendar(cor_date: Filter):
-    start_end_weeks = find_boundaries_week(cor_date.this_date_filter)
-    cor_date.date_start_filter = start_end_weeks[0]
-    cor_date.date_end_filter = start_end_weeks[-1]
-    cor_date.this_date_filter = None
+    """Calendar Booking"""
+    try:
+        start_end_weeks = find_boundaries_week(cor_date.this_date_filter)
+        cor_date.date_start_filter = start_end_weeks[0]
+        cor_date.date_end_filter = start_end_weeks[-1]
+        cor_date.this_date_filter = None
+    except:
+        pprint("error: fun in get_indo_calendar")
+        return None
 
     return get_filter_booking(cor_date)
 

@@ -5,7 +5,7 @@ from .queries_event import get_filter_work_day, find_boundaries_week, all_workin
 from models.all_models import Event
 
 
-event = Namespace('event', 'This-booking_API')
+event = Namespace('event', 'This-Event_API')
 
 
 @event.route('')

@@ -1,16 +1,22 @@
 from flask import request, jsonify
 from flask_restplus import Namespace, Resource, fields
-from queries.queries_booking import get_all_booking, get_filter_booking
+from datetime import time, date, datetime
 
+from .queries_booking import get_all_booking, get_filter_booking, get_indo_calendar
 from models.all_models import AllBooking
-
 from .dataclass_booking import FilterBooking as Filter
+
+
+class TimeFormat(fields.Raw):
+    def format(self, value):
+        return time.strftime(value, "%H:%M")
+
 
 booking = Namespace('booking', 'This-booking_API')
 
-booking_inset = booking.model('Booking', {
-    "time_start": fields.DateTime(description='start_booking', required=True),
-    "time_end": fields.DateTime(description='end_booking', required=True),
+booking_inset = booking.model('BookingInsert', {
+    "time_start": TimeFormat(required=True, description='Time in HH:MM', default='HH:MM'),
+    "time_end": TimeFormat(required=True, description='Time in HH:MM', default='HH:MM'),
     "event_id": fields.Integer(description='fk event table', required=True),
     "service_id": fields.Integer(description='fk service table', required=True),
     "staff_id": fields.Integer(description='fk staff table', required=True),
@@ -31,7 +37,7 @@ class Booking(Resource):
         return jsonify(get_all_booking())
 
 
-booking_filter = booking.model('Booking', {
+booking_filter = booking.model('BookingFilter', {
     "this_date_filter": fields.Date(description='all bookings for this day', required=True),
     "date_start_filter": fields.Date(description='date beginning of the range', required=True),
     "date_day_filter": fields.Date(description='data end of range', required=True),
@@ -47,7 +53,22 @@ class FilterBooking(Resource):
     @booking.expect(booking_filter)
     def post(self):
         add_filter = Filter(**request.get_json())
-        res_data = get_filter_booking(Filter)
+        res_data = get_filter_booking(add_filter)
+
+
+@booking.route('/calendar/string:<cal_date>')
+@booking.doc(params={'cal_date': 'date format 2022-05-27'})
+class CalendarBooking(Resource):
+    def get(self, cal_date: str):
+        try:
+            cal_date = datetime.strptime(cal_date, '%Y-%m-%d').date()
+        except ValueError:
+            return {"Error": "not correct data-format in query"}
+
+        calendar_date = Filter()
+        calendar_date.this_date_filter = calendar_date
+
+        return get_indo_calendar(calendar_date)
 
 
 

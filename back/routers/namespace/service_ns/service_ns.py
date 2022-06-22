@@ -8,9 +8,9 @@ from .dataclass_services import FilterServices as Filter
 service = Namespace('service')
 
 
-add_service = service.model('AddService', {
+add_service = service.model('AllService', {
      "name_service": fields.String(description='new_service', required=True),
-     "price": fields.Decimal()
+     "price": fields.Float()
 })
 
 
@@ -33,7 +33,7 @@ service_filter = service.model('AddService', {
 })
 
 
-@service.route('filter')
+@service.route('/filter')
 class FilterServices(Resource):
     @service.expect(service_filter)
     def post(self):
