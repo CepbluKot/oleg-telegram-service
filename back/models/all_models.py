@@ -72,11 +72,11 @@ class UsersConnectALL(db.Model):
     default_set = db.Column(db.Integer, db.ForeignKey('default_setting.id'))
     connect_default = db.relationship('DefaultSetting')
 
-    def __init__(self, new_name, new_login, password, role=ROLE_EMPLOYEE):
+    def __init__(self, new_name, login, hash_password, role=ROLE_EMPLOYEE):
         self.name = new_name
-        self.login = new_login
+        self.login = login
         self.role = role
-        self.password = password
+        self.password = hash_password
 
     def save_to_db(self):
         db.session.add(self)

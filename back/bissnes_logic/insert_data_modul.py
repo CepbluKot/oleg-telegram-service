@@ -20,10 +20,6 @@ from werkzeug.security import generate_password_hash
 
 
 def add_users_connecta(password, username, name):
-    try:
-        RegisterUserConnectA(name=name, username=username, password=password)
-    except ValidationError as error:
-        return error.json(indent=5)
 
     hash_password = generate_password_hash(password)
     new_user = UsersConnectALL(name, username, hash_password)
