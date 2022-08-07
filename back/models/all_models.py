@@ -100,8 +100,16 @@ class MyStaff(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_staff = db.Column(db.String)
 
+    def __init__(self, name_staff):
+        self.name_staff = name_staff
+        self.save_to_db()
+
     def __repr__(self):
         return f"Staff ('{self.name_staff}')"
+
+    @classmethod
+    def find_my_id(cls, id_) -> 'MyStaff':
+        return cls.query.filter(MyStaff.id == id_).first()
 
     def save_to_db(self):
         db.session.add(self)
@@ -248,24 +256,37 @@ class ServiceStaffConnect(db.Model):
     service_connect = db.relationship('MyService', backref='ssc_service_se')
     staff_connect = db.relationship('MyStaff', backref='ssc_staff_se')
 
-    def __init__(self, service_name, staff_name):
-        find_ser = MyService.query.filter(MyService.name_service == service_name).first()
-        find_sf = MyStaff.query.filter(MyStaff.name_staff == staff_name).first()
+    def __init__(self, name_service, name_staff):
+        find_ser = MyService.query.filter(MyService.name_service == name_service).first()
+        find_sf = MyStaff.query.filter(MyStaff.name_staff == name_staff).first()
 
         if find_ser and find_ser is not None:
-            try:
-                self.service_id = find_ser.id
-                self.staff_id = find_sf.id
-            except:
-                print("ERROR ~ DON'T CREATED ServiceStaffConnect" )
+            find_repetition = db.session.query(ServiceStaffConnect.query.filter(db.and_(
+            ServiceStaffConnect.staff_id == find_sf.id,
+            ServiceStaffConnect.service_id == find_ser.id)).exists()).scalar()
+
+            if not find_repetition:
+                try:
+                    self.service_id = find_ser.id
+                    self.staff_id = find_sf.id
+                    self.save_to_db()
+                except:
+                    print("ERROR ~ DON'T CREATED ServiceStaffConnect")
+            else:
+                print("ERROR ~ DON'T CREATED ServiceStaffConnect")
+        else:
+            print("ERROR ~ DON'T CREATED ServiceStaffConnect")
 
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
 
     @classmethod
-    def find_name(cls, name_service):
-        return cls.query.filter(MyService.name_service == name_service)
+    def find_connect(cls, name_service, name_staff) -> 'ServiceStaffConnect':
+        con = cls.query.join(MyService).join(MyStaff)
+        con = con.filter(db.and_(MyService.name_service == name_service, MyStaff.name_staff == name_staff))
+        return con.first()
+
 
     def delete_from_db(self):
         db.session.delete(self)

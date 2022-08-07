@@ -15,7 +15,7 @@ class FilterServicesStaff(BaseModel):
 
 
 class OneConnectSerSt(BaseModel):
-    name_services: Optional[str] = None
+    name_service: Optional[str] = None
     name_staff: Optional[str] = None
 
 

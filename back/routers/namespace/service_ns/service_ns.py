@@ -11,7 +11,7 @@ from .validate import AllConnectServiceStaff as ConnectStaffService
 service = Namespace('service')
 
 
-add_service = service.model('add service model', {
+add_service = service.model('service model', {
      "name_service": fields.String(description='new_service', required=True),
      "price": fields.Float()
 })
@@ -45,13 +45,33 @@ class AllService(Resource):
         except IndexError:
             return {'message': 'DONT ADD NEW SERVICE'}, 404
 
-        return all_service()
+        return all_service(), 200
+
 
 @service.route('/string:<service_name>')
 @service.doc(params={'service_name': 'name_service'})
 class OneService(Resource):
     def get(self, service_name):
-        return get_filter_services(Filter(name_services=[service_name]))
+        return get_filter_services(Filter(name_services=[service_name])), 200
+
+    @service.expect(add_service)
+    def put(self, service_name):
+        find_ser = MyService.find_by_name(service_name)
+
+        if find_ser:
+            try:
+                update_ser = ValidateService(**request.get_json())
+            except ValidationError as e:
+                print(e)
+                return {'message': e.json()}, 404
+
+            find_ser.name_service = update_ser.name_service
+            find_ser.price_service = update_ser.price
+            find_ser.update_from_db()
+        else:
+            return {'message': "Incorrect data entry"}, 404
+
+        return get_filter_services(Filter(name_services=[service_name])), 200
 
     def delete(self, service_name=None):
         if service_name is not None:
@@ -103,8 +123,27 @@ class StaffServiceConnect(Resource):
     @service.expect(list_ser_sf)
     def post(self):
         all_data_connect = ConnectStaffService(**request.get_json())
+        all_service_name = []
+
         for one_connect in all_data_connect.all_connect:
-            new_con = ServiceStaffConnect(*one_connect)
-            new_con.save_to_db()
+            ServiceStaffConnect(name_service=one_connect.name_service, name_staff=one_connect.name_staff)
+            all_service_name.append(one_connect.name_service)
+
+        return get_filter_services(Filter(name_services=all_service_name))
 
 
+    @service.expect(list_ser_sf)
+    def delete(self):
+        all_data_connect = ConnectStaffService(**request.get_json())
+        all_delete = []
+        not_delete = []
+
+        for one_connect in all_data_connect.all_connect:
+            find_c = ServiceStaffConnect.find_connect(name_service=one_connect.name_service, name_staff=one_connect.name_staff)
+            if find_c:
+                find_c.delete_from_db()
+                all_delete.append([one_connect.name_service, one_connect.name_staff])
+            else:
+                not_delete.append([one_connect.name_service, one_connect.name_staff])
+
+        return {"delete": all_delete, "not_delete": not_delete}
