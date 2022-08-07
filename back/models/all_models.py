@@ -29,11 +29,11 @@ class DefaultSetting(db.Model):
 
 
 class MyService(db.Model):
-    __tablename__ = 'myservice_connecta'
+    __tablename__ = 'myservice'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_service = db.Column(db.String, unique=True)
-    price_service = db.Column(db.DECIMAL)
+    price_service = db.Column(db.Float)
 
     def __init__(self, name_service, price):
         self.name_service = name_service
@@ -49,6 +49,10 @@ class MyService(db.Model):
     def update_from_db(self):
         db.session.commit()
 
+    @classmethod
+    def find_by_name(cls, name_s) -> "MyService":
+        return cls.query.filter_by(name_service=name_s).first()
+
     def delete_from_db(self):
         db.session.delete(self)
         db.session.commit()
@@ -59,7 +63,7 @@ ROLE_ADMIN = 1
 
 
 class UsersConnectALL(db.Model):
-    __tablename__ = 'users_connectall'
+    __tablename__ = 'global_users'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     company_id = db.Column(db.Integer)
@@ -91,11 +95,10 @@ class UsersConnectALL(db.Model):
 
 
 class MyStaff(db.Model):
-    __tablename__ = 'mystaff_connecta'
+    __tablename__ = 'mystaff'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_staff = db.Column(db.String)
-    service_staff = db.Column(db.ARRAY(db.Integer))
 
     def __repr__(self):
         return f"Staff ('{self.name_staff}')"
@@ -185,10 +188,10 @@ class AllBooking(db.Model):
     signup_user = db.Column(db.Integer, db.ForeignKey('users_this_company.id')) #человек который записался
     connect_user = db.relationship('CompanyUsers')
 
-    signup_service = db.Column(db.Integer, db.ForeignKey('myservice_connecta.id')) #услуга
+    signup_service = db.Column(db.Integer, db.ForeignKey('myservice.id')) #услуга
     connect_service = db.relationship('MyService', backref='service_ab')
 
-    signup_staff = db.Column(db.Integer, db.ForeignKey('mystaff_connecta.id')) #тренер
+    signup_staff = db.Column(db.Integer, db.ForeignKey('mystaff.id')) #тренер
     connect_staff = db.relationship('MyStaff')
     comment = db.Column(db.TEXT)
 
@@ -219,7 +222,7 @@ class ServiceEvent(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('event_company.id'), nullable=False)
     event_connect = db.relationship('Event', backref='event_se')
 
-    service_id = db.Column(db.Integer, db.ForeignKey('myservice_connecta.id'), nullable=False)
+    service_id = db.Column(db.Integer, db.ForeignKey('myservice.id'), nullable=False)
     service_connect = db.relationship('MyService', backref='service_se')
 
     quantity = db.Column(db.Integer, nullable=False)
@@ -234,4 +237,38 @@ class ServiceEvent(db.Model):
     def delete_from_db(self):
         db.session.delete(self)
         db.session.commit()
+
+
+class ServiceStaffConnect(db.Model):
+    __tablename__ = 'service_staff_connect'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    service_id = db.Column(db.Integer, db.ForeignKey('myservice.id'), nullable=False)
+    staff_id = db.Column(db.Integer, db.ForeignKey('mystaff.id'), nullable=False)
+
+    service_connect = db.relationship('MyService', backref='ssc_service_se')
+    staff_connect = db.relationship('MyStaff', backref='ssc_staff_se')
+
+    def __init__(self, service_name, staff_name):
+        find_ser = MyService.query.filter(MyService.name_service == service_name).first()
+        find_sf = MyStaff.query.filter(MyStaff.name_staff == staff_name).first()
+
+        if find_ser and find_ser is not None:
+            try:
+                self.service_id = find_ser.id
+                self.staff_id = find_sf.id
+            except:
+                print("ERROR ~ DON'T CREATED ServiceStaffConnect" )
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @classmethod
+    def find_name(cls, name_service):
+        return cls.query.filter(MyService.name_service == name_service)
+
+    def delete_from_db(self):
+        db.session.delete(self)
+        db.session.commit()
+
 

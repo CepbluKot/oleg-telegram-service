@@ -1,7 +1,7 @@
 from setting_web import db, ma
 from models.all_models import *
 
-
+#1. Cоздание, удаление, изменение услуги
 
 def _base_query():
     res_query = db.session.query(MyService)

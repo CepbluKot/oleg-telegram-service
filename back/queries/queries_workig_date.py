@@ -51,6 +51,7 @@ def all_working_date():
 
 
 def get_filter_work_day(name_event=None,
+                        name_service=None,
                         check_day=None,
                         between_start=None,
                         between_end=None):
@@ -59,6 +60,9 @@ def get_filter_work_day(name_event=None,
 
     if name_event:
         this_day = this_day.filter(Event.name_event == name_event)
+
+    if name_service:
+        this_day = this_day.filter(MyService.name_service == name_service)
 
     if check_day:
         this_day = this_day.filter(Event.day == check_day)

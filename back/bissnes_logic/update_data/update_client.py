@@ -1,7 +1,7 @@
 from setting_web import db
-from models.users_client.all_users_this_connecta import CompanyUsers
+from models.all_models import CompanyUsers
 
-from api.api_client_company import _base_query
+from queries.queries_client_company import _base_query
 
 
 def update_data_client(tg_id, name=None, phone=None):

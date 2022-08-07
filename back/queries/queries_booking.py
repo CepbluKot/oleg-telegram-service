@@ -4,7 +4,7 @@ from datetime import datetime, time
 from queries.queries_workig_date import find_boundaries_week
 from models.all_models import *
 
-from models.booking.booking_schema import InfoBookingSchema
+from routers.namespace.booking_ns.booking_schema import InfoBookingSchema
 
 
 def _base_query():

@@ -1,13 +1,10 @@
 from setting_web import db
-from models.booking_date_connecta import AllBooking
-from models.event.days_coonecta import Event
-from models.service.service_connecta import MyService
-from models.users_client.all_users_this_connecta import CompanyUsers
-from models.users_oleg.all_users_connectall import UsersConnectALL
+from models.all_models import *
 
-from api.api_workig_date import get_filter_work_day, check_exit_event
-from api.api_services import get_filter_services
-from api.api_client_company import get_filter_client
+from queries.queries_services import get_filter_services
+from queries.queries_client_company import get_filter_client
+from queries.queries_workig_date import get_filter_work_day, check_exit_event
+
 
 from bissnes_logic.calendar_logic import freedom_items
 from bissnes_logic.validators import RegisterUserConnectA, RegisterСlient
