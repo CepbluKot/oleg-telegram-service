@@ -1,7 +1,7 @@
 import calendar as cl
 from datetime import date, time
-from api.api_booking import get_filter_booking
-from api.api_workig_date import get_filter_work_day
+from queries.queries_booking import get_filter_booking
+from queries.queries_workig_date import get_filter_work_day
 
 from datetime import datetime
 

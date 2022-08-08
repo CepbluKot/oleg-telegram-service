@@ -29,11 +29,11 @@ class DefaultSetting(db.Model):
 
 
 class MyService(db.Model):
-    __tablename__ = 'myservice_connecta'
+    __tablename__ = 'myservice'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_service = db.Column(db.String, unique=True)
-    price_service = db.Column(db.DECIMAL)
+    price_service = db.Column(db.Float)
 
     def __init__(self, name_service, price):
         self.name_service = name_service
@@ -49,6 +49,10 @@ class MyService(db.Model):
     def update_from_db(self):
         db.session.commit()
 
+    @classmethod
+    def find_by_name(cls, name_s) -> "MyService":
+        return cls.query.filter_by(name_service=name_s).first()
+
     def delete_from_db(self):
         db.session.delete(self)
         db.session.commit()
@@ -59,7 +63,7 @@ ROLE_ADMIN = 1
 
 
 class UsersConnectALL(db.Model):
-    __tablename__ = 'users_connectall'
+    __tablename__ = 'global_users'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     company_id = db.Column(db.Integer)
@@ -72,11 +76,16 @@ class UsersConnectALL(db.Model):
     default_set = db.Column(db.Integer, db.ForeignKey('default_setting.id'))
     connect_default = db.relationship('DefaultSetting')
 
-    def __init__(self, new_name, new_login, password, role=ROLE_EMPLOYEE):
+    def __init__(self, new_name, login, hash_password, role=ROLE_EMPLOYEE):
         self.name = new_name
-        self.login = new_login
+        self.login = login
         self.role = role
-        self.password = password
+        self.password = hash_password
+        self.save_to_db()
+
+    @classmethod
+    def find_by_login(cls, login_):
+        return cls.query.filter(cls.login == login_).first()
 
     def save_to_db(self):
         db.session.add(self)
@@ -91,14 +100,21 @@ class UsersConnectALL(db.Model):
 
 
 class MyStaff(db.Model):
-    __tablename__ = 'mystaff_connecta'
+    __tablename__ = 'mystaff'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_staff = db.Column(db.String)
-    service_staff = db.Column(db.ARRAY(db.Integer))
+
+    def __init__(self, name_staff):
+        self.name_staff = name_staff
+        self.save_to_db()
 
     def __repr__(self):
         return f"Staff ('{self.name_staff}')"
+
+    @classmethod
+    def find_my_id(cls, id_) -> 'MyStaff':
+        return cls.query.filter(MyStaff.id == id_).first()
 
     def save_to_db(self):
         db.session.add(self)
@@ -117,16 +133,25 @@ class CompanyUsers(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_client = db.Column(db.String)
-    tg_id = db.Column(db.Integer)
+    tg_id = db.Column(db.Integer, unique=True)
     phone_num = db.Column(db.String)
 
     def __init__(self, new_name, tg_id, phone_num):
         self.name_client = new_name
         self.tg_id = tg_id
         self.phone_num = phone_num
+        self.save_to_db()
 
     def __repr__(self):
         return f"User ('{self.name_client}', {self.tg_id})"
+
+    @classmethod
+    def find_by_tg_id(cls, tg_id_) -> 'CompanyUsers':
+        return cls.query.filter(cls.tg_id == tg_id_).first()
+
+    @classmethod
+    def find_by_phone(cls, phone_) -> 'CompanyUsers':
+        return cls.query.filter(cls.phone_num == phone_).first()
 
     def save_to_db(self):
         db.session.add(self)
@@ -185,10 +210,10 @@ class AllBooking(db.Model):
     signup_user = db.Column(db.Integer, db.ForeignKey('users_this_company.id')) #человек который записался
     connect_user = db.relationship('CompanyUsers')
 
-    signup_service = db.Column(db.Integer, db.ForeignKey('myservice_connecta.id')) #услуга
+    signup_service = db.Column(db.Integer, db.ForeignKey('myservice.id')) #услуга
     connect_service = db.relationship('MyService', backref='service_ab')
 
-    signup_staff = db.Column(db.Integer, db.ForeignKey('mystaff_connecta.id')) #тренер
+    signup_staff = db.Column(db.Integer, db.ForeignKey('mystaff.id')) #тренер
     connect_staff = db.relationship('MyStaff')
     comment = db.Column(db.TEXT)
 
@@ -219,7 +244,7 @@ class ServiceEvent(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('event_company.id'), nullable=False)
     event_connect = db.relationship('Event', backref='event_se')
 
-    service_id = db.Column(db.Integer, db.ForeignKey('myservice_connecta.id'), nullable=False)
+    service_id = db.Column(db.Integer, db.ForeignKey('myservice.id'), nullable=False)
     service_connect = db.relationship('MyService', backref='service_se')
 
     quantity = db.Column(db.Integer, nullable=False)
@@ -234,4 +259,51 @@ class ServiceEvent(db.Model):
     def delete_from_db(self):
         db.session.delete(self)
         db.session.commit()
+
+
+class ServiceStaffConnect(db.Model):
+    __tablename__ = 'service_staff_connect'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    service_id = db.Column(db.Integer, db.ForeignKey('myservice.id'), nullable=False)
+    staff_id = db.Column(db.Integer, db.ForeignKey('mystaff.id'), nullable=False)
+
+    service_connect = db.relationship('MyService', backref='ssc_service_se')
+    staff_connect = db.relationship('MyStaff', backref='ssc_staff_se')
+
+    def __init__(self, name_service, name_staff):
+        find_ser = MyService.query.filter(MyService.name_service == name_service).first()
+        find_sf = MyStaff.query.filter(MyStaff.name_staff == name_staff).first()
+
+        if find_ser and find_ser is not None:
+            find_repetition = db.session.query(ServiceStaffConnect.query.filter(db.and_(
+            ServiceStaffConnect.staff_id == find_sf.id,
+            ServiceStaffConnect.service_id == find_ser.id)).exists()).scalar()
+
+            if not find_repetition:
+                try:
+                    self.service_id = find_ser.id
+                    self.staff_id = find_sf.id
+                    self.save_to_db()
+                except:
+                    print("ERROR ~ DON'T CREATED ServiceStaffConnect")
+            else:
+                print("ERROR ~ DON'T CREATED ServiceStaffConnect")
+        else:
+            print("ERROR ~ DON'T CREATED ServiceStaffConnect")
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @classmethod
+    def find_connect(cls, name_service, name_staff) -> 'ServiceStaffConnect':
+        con = cls.query.join(MyService).join(MyStaff)
+        con = con.filter(db.and_(MyService.name_service == name_service, MyStaff.name_staff == name_staff))
+        return con.first()
+
+
+    def delete_from_db(self):
+        db.session.delete(self)
+        db.session.commit()
+
 

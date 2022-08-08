@@ -12,7 +12,7 @@ from datetime import date, time, datetime
 from typing import Optional, List
 from typing_extensions import TypedDict
 
-from api.api_services import check_exit_service as verify_exit_service
+from queries.queries_services import check_exit_service as verify_exit_service
 
 
 class RegisterUserConnectA(BaseModel):

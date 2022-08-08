@@ -44,3 +44,6 @@ admin.add_view(ModelView(MyStaff, db.session))
 admin.add_view(ModelView(UsersConnectALL, db.session))
 admin.add_view(ModelView(AllBooking, db.session))
 admin.add_view(ModelView(ServiceEvent, db.session))
+admin.add_view(ModelView(ServiceStaffConnect, db.session))
+
+
