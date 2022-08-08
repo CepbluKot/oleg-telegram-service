@@ -81,6 +81,11 @@ class UsersConnectALL(db.Model):
         self.login = login
         self.role = role
         self.password = hash_password
+        self.save_to_db()
+
+    @classmethod
+    def find_by_login(cls, login_):
+        return cls.query.filter(cls.login == login_).first()
 
     def save_to_db(self):
         db.session.add(self)
@@ -128,16 +133,25 @@ class CompanyUsers(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_client = db.Column(db.String)
-    tg_id = db.Column(db.Integer)
+    tg_id = db.Column(db.Integer, unique=True)
     phone_num = db.Column(db.String)
 
     def __init__(self, new_name, tg_id, phone_num):
         self.name_client = new_name
         self.tg_id = tg_id
         self.phone_num = phone_num
+        self.save_to_db()
 
     def __repr__(self):
         return f"User ('{self.name_client}', {self.tg_id})"
+
+    @classmethod
+    def find_by_tg_id(cls, tg_id_) -> 'CompanyUsers':
+        return cls.query.filter(cls.tg_id == tg_id_).first()
+
+    @classmethod
+    def find_by_phone(cls, phone_) -> 'CompanyUsers':
+        return cls.query.filter(cls.phone_num == phone_).first()
 
     def save_to_db(self):
         db.session.add(self)

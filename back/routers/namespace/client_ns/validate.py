@@ -15,7 +15,7 @@ from phonenumbers import (
 MOBILE_NUMBER_TYPES = PhoneNumberType.MOBILE, PhoneNumberType.FIXED_LINE_OR_MOBILE
 
 
-class RegisterСlient(BaseModel):
+class RegisterClient(BaseModel):
     name: constr(min_length=2, max_length=20)
     tg_id: int
     phone: constr(max_length=30)
@@ -37,6 +37,6 @@ class RegisterСlient(BaseModel):
 
 
 class FilterClient(BaseModel):
-    name: Optional[str] = None
-    tg_id: Optional[str] = None
-    phone_num: Optional[str] = None
+    name: Optional[List[str]] = None
+    tg_id: Optional[List[str]] = None
+    phone_num: Optional[List[str]] = None

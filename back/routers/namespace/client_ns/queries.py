@@ -1,7 +1,7 @@
 from models.all_models import CompanyUsers, AllBooking
 
-from .client_schema import InfoUsersComSchema
-from .dataclass_client import FilterClient as Filter
+from .schema import InfoUsersComSchema
+from .validate import FilterClient as Filter
 
 
 def _base_query():
@@ -23,13 +23,14 @@ def all_client():
 def get_filter_client(filter_cl: Filter):
     client_data = _base_query()
 
-    if filter_cl.tg_id is not None:
+    if filter_cl.tg_id is not None and len(filter_cl.tg_id) > 0:
         client_data = client_data.filter(CompanyUsers.tg_id == filter_cl.tg_id)
 
-    if filter_cl.phone_num is not None:
+    if filter_cl.phone_num is not None and len(filter_cl.phone_num) > 0:
         client_data = client_data.filter(CompanyUsers.phone_num == filter_cl.phone_num)
 
-    if (filter_cl.name is not None) and (filter_cl.tg_id is not None or filter_cl.phone_num is not None):
+    if (filter_cl.name is not None) and (filter_cl.tg_id is not None or filter_cl.phone_num is not None) \
+            and len(filter_cl.name) > 0:
         client_data = client_data.filter(CompanyUsers.name_client == filter_cl.name)
 
     api_client_schema = InfoUsersComSchema()
