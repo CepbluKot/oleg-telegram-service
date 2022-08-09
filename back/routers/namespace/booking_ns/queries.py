@@ -1,8 +1,8 @@
-from queries.queries_workig_date import find_boundaries_week
 from models.all_models import *
+from routers.namespace.event_ns.queries_event import find_boundaries_week
 
-from .dataclass_booking import FilterBooking as Filter
-from .booking_schema import InfoBookingSchema
+from .validate import FilterBooking as Filter
+from .schema import InfoBookingSchema
 
 from pprint import pprint
 

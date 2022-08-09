@@ -1,9 +1,9 @@
 from setting_web import flask_app, db, ma
 from models.all_models import AllBooking
 
-from queries.queries_workig_date import find_boundaries_week, EventSchema
-from queries.queries_client_company import InfoUsersComSchema
-from queries.queries_services import ServiceSchema
+from routers.namespace.event_ns.event_schema import EventSchema
+from routers.namespace.service_ns.schema import ServiceSchema
+from routers.namespace.client_ns.schema import InfoUsersComSchema
 
 
 class InfoBookingSchema(ma.SQLAlchemyAutoSchema):
