@@ -4,7 +4,7 @@ from models.all_models import *
 from calendar import Calendar
 from datetime import date, datetime
 
-from .event_schema import ServiceEvent, EventSchema
+from .schema import ServiceEvent, EventSchema
 
 now_date = datetime.now()
 cl = Calendar()

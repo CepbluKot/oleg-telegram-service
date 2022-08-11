@@ -1,7 +1,7 @@
 from setting_web import flask_app, db, ma
 from models.all_models import AllBooking
 
-from routers.namespace.event_ns.event_schema import EventSchema
+from routers.namespace.event_ns.schema import EventSchema
 from routers.namespace.service_ns.schema import ServiceSchema
 from routers.namespace.client_ns.schema import InfoUsersComSchema
 

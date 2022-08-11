@@ -1,5 +1,5 @@
 from models.all_models import *
-from routers.namespace.event_ns.queries_event import find_boundaries_week
+from routers.namespace.event_ns.queries import find_boundaries_week
 
 from .validate import FilterBooking as Filter
 from .schema import InfoBookingSchema
