@@ -6,7 +6,9 @@ from typing import Optional, List
 
 class ValidateService(BaseModel):
     name_service: constr(min_length=1, max_length=100)
-    price: confloat(ge=0)
+    price: Optional[confloat(ge=0)] = None
+    duration: Optional[time] = None
+    max_booking: Optional[conint(ge=0)] = None
 
 
 class FilterServicesStaff(BaseModel):

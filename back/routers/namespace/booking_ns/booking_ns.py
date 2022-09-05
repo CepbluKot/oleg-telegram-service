@@ -2,8 +2,8 @@ from flask import request, jsonify
 from flask_restplus import Namespace, Resource, fields
 from datetime import time, date, datetime
 
-from .queries import get_all_booking, get_filter_booking, get_indo_calendar
-from models.all_models import AllBooking
+from .queries import get_all_booking, get_filter_booking, get_indo_calendar, find_freedom_booking
+from models.all_models import AllBooking, ServiceEvent
 from .validate import FilterBooking as Filter
 
 
@@ -66,13 +66,18 @@ class CalendarBooking(Resource):
             return {"Error": "not correct data-format in query"}
 
         calendar_date = Filter()
-        calendar_date.this_date_filter = calendar_date
-
+        calendar_date.this_date_filter = cal_date
         return get_indo_calendar(calendar_date)
 
 
+freedom_booking = booking.model('FreedomBooking', {
+    "name_service": fields.String(description='search for a free reservation by event name')
+})
 
 
-
-
-
+@booking.route('/search')
+class BookingSearch(Resource):
+    @booking.expect(freedom_booking)
+    def post(self):
+        name_service = request.get_json()['name_service']
+        return find_freedom_booking(name_service)

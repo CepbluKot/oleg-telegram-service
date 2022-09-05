@@ -1,4 +1,7 @@
 from setting_web import db
+from datetime import timedelta, date
+from calendar import weekday
+from typing import List, Optional
 
 
 class DefaultSetting(db.Model):
@@ -34,10 +37,14 @@ class MyService(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_service = db.Column(db.String, unique=True)
     price_service = db.Column(db.Float)
+    duration = db.Column(db.Time)
+    max_booking = db.Column(db.Integer)
 
-    def __init__(self, name_service, price):
+    def __init__(self, name_service, price=None, duration=None, max_booking=None):
         self.name_service = name_service
         self.price_service = price
+        self.duration=duration
+        self.max_booking=max_booking
 
     def __repr__(self):
         return f"Service ('{self.name_service}')"
@@ -168,19 +175,44 @@ class CompanyUsers(db.Model):
 class Event(db.Model):
     __tablename__ = 'event_company'
 
+    __table_args__ = (
+        db.UniqueConstraint("id", "name_event", "day_start", "day_end", "start_event", "end_event"),
+    )
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_event = db.Column(db.String, default="Work_Day")
     day_start = db.Column(db.Date, nullable=False)
     day_end = db.Column(db.Date, nullable=False)
     start_event = db.Column(db.Time)
     end_event = db.Column(db.Time)
+    weekdays = db.Column(db.ARRAY(db.Integer), default=None)
+    many_day = db.Column(db.ARRAY(db.Date), default=None)
 
-    def __init__(self, name, day_start, day_end, start_event, end_event):
+    """weekday: 
+    'Mon' -> 0
+    'Thus' -> 1
+    ...
+    'Sun' -> 6
+    """
+
+    def __init__(self, name, day_start, day_end, start_event, end_event, weekdays_list=None):
         self.name_event = name
         self.day_start = day_start
         self.day_end = day_end
         self.start_event = start_event
         self.end_event = end_event
+        self.weekdays = weekdays_list
+
+        if weekday is not None or day_end - day_start > timedelta(days=0):
+            days = []
+            for single_date in self.daterange(day_start, day_end):
+                    if weekday is not None:
+                        if weekday(single_date.year, single_date.month, single_date.day) not in weekdays_list:
+                            continue
+
+                    days.append(date(single_date.year, single_date.month, single_date.day))
+
+            self.many_day = days
 
         try:
             self.save_to_db()
@@ -188,7 +220,11 @@ class Event(db.Model):
             print("ERROR ADD EVENT")
 
     def __repr__(self):
-        return f"Event ('{self.name_event, self.day}')"
+        return f"Event ('{self.name_event, self.day_start}')"
+
+    def daterange(self, start_date, end_date):
+        for n in range(int((end_date - start_date).days)):
+            yield start_date + timedelta(n)
 
     @classmethod
     def find_by_id(cls, id_) -> 'Event':
@@ -205,7 +241,6 @@ class Event(db.Model):
                                         cls.day_end == day_end_,
                                         cls.start_event == time_start_,
                                         cls.end_event == time_end_)).first()
-
 
     def save_to_db(self):
         db.session.add(self)
@@ -225,6 +260,7 @@ class AllBooking(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     time_start = db.Column(db.Time)
     time_end = db.Column(db.Time)
+    day = db.Column(db.Date)
 
     signup_event = db.Column(db.Integer, db.ForeignKey('event_company.id')) #день_записи
     connect_event = db.relationship('Event')
@@ -246,6 +282,16 @@ class AllBooking(db.Model):
         self.signup_staff = staff_id
         self.time_start = time_start
         self.time_end = time_end
+
+
+    @classmethod
+    def find_booking_by_event_id(cls, event_id):
+        if type(event_id) == list:
+            return cls.query.filter(cls.signup_event.in_(event_id))
+        elif type(event_id) == int:
+            return cls.query.filter(cls.signup_event == event_id)
+
+
 
     def save_to_db(self):
         db.session.add(self)
@@ -283,9 +329,14 @@ class ServiceEvent(db.Model):
         self.save_to_db()
 
     @classmethod
-    def find_by_event_and_service(cls, event_id, service_name) -> 'ServiceEvent':
+    def find_by_event_and_service(cls, event_id, service_name) -> List['ServiceEvent']:
         find_service = MyService.find_by_name(service_name)
         return cls.query.filter(db.and_(cls.service_id == find_service, cls.event_id == event_id)).first()
+
+    @classmethod
+    def event_search_by_service(cls, service_name):
+        find_service = MyService.find_by_name(service_name)
+        return cls.query.filter(db.and_(cls.service_id == find_service.id)).options(db.load_only(cls.event_id)).all()
 
     def save_to_db(self):
         try:

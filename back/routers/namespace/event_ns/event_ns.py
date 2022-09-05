@@ -33,10 +33,12 @@ connect_event_service = event.model("Info about connect event and services", {
 
 info_event = event.model('Data about one event', {
     "name": fields.String(),
-    "day": fields.Date(),
+    "day_start": fields.Date(),
+    "day_end": fields.Date(),
     "start_event": TimeFormat(),
     "end_event": TimeFormat(),
-    "service_this_day": fields.List(fields.Nested(connect_event_service))
+    "service_this_day": fields.List(fields.Nested(connect_event_service)),
+    "weekday_list": fields.List(fields.Integer)
 })
 
 
@@ -54,7 +56,9 @@ class Booking(Resource):
               day_end=new_event.day_end,
               start_event=new_event.start_event,
               end_event=new_event.end_event,
-              name=new_event.name)
+              name=new_event.name,
+              weekdays_list=new_event.weekday_list
+              )
 
         find_new_event = Event.find_by_all_parameters(name_=new_event.name,
                                                       day_start_=new_event.day_start,

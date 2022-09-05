@@ -37,6 +37,7 @@ class FilterClientBooking(BaseModel):
 
 
 class FilterBooking(BaseModel):
+    tg_id: Optional[int] = None
     this_date_filter: Optional[date] = None
     date_start_filter: Optional[date] = None
     date_end_filter: Optional[date] = None
@@ -44,6 +45,13 @@ class FilterBooking(BaseModel):
     service_filter: List[str] = None
     time_start_filter: Optional[time] = None
     time_end_filter: Optional[time] = None
+
+
+class FreedomBooking(BaseModel):
+    day: date
+    event: str
+    intervals: List[List[time]]
+
 
 
 
