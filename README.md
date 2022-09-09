@@ -23,7 +23,11 @@
 - Aiogram
 - React - в данном репозитории не присутствует, используется для Frontend
 
+<<<<<<< HEAD
 ![Пример Swagger API]<>
+=======
+![Пример Swagger API](swagger_example.png)
+>>>>>>> 735df7774216a823fe8d781c4e5ec656b399d7a2
 
 ## Установка проекта <a name="Install"></a>
 Перед установкой убедитесь, что у вас установлен PostgreSQL, Python 3.8
