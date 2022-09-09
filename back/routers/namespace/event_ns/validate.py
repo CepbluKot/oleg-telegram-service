@@ -34,7 +34,7 @@ class ValidateEvent(BaseModel):
     start_event: time
     end_event: time
     service_this_day: Optional[List[ServiceEvent]]
-    weekday_list: Optional[List[int]] = None
+    weekday_list: Optional[List[int]]
 
     # @root_validator(allow_reuse=True)
     # def check_reliability_date(cls, values):
@@ -66,3 +66,12 @@ class FilterEvent(BaseModel):
     start_time: Optional[time] = None
     end_time: Optional[time] = None
     name: Optional[List[str]] = None
+
+
+class WindowDataService(BaseModel):
+    start_time: time
+    end_time: time
+    status_booking: bool
+    id_client_booking: int = 0
+
+

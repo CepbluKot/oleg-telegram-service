@@ -2,6 +2,7 @@ from setting_web import db
 from datetime import timedelta, date
 from calendar import weekday
 from typing import List, Optional
+import rapidjson
 
 
 class DefaultSetting(db.Model):
@@ -203,13 +204,14 @@ class Event(db.Model):
         self.end_event = end_event
         self.weekdays = weekdays_list
 
-        if weekday is not None or day_end - day_start > timedelta(days=0):
+        print(weekdays_list, day_end - day_start)
+        if weekdays_list is not None or day_end - day_start > timedelta(days=0):
             days = []
             for single_date in self.daterange(day_start, day_end):
                     if weekday is not None:
                         if weekday(single_date.year, single_date.month, single_date.day) not in weekdays_list:
                             continue
-
+                    print(single_date)
                     days.append(date(single_date.year, single_date.month, single_date.day))
 
             self.many_day = days
@@ -263,7 +265,7 @@ class AllBooking(db.Model):
     day = db.Column(db.Date)
 
     signup_event = db.Column(db.Integer, db.ForeignKey('event_company.id')) #день_записи
-    connect_event = db.relationship('Event')
+    connect_event = db.relationship('Event', backref='event_booking')
 
     signup_user = db.Column(db.Integer, db.ForeignKey('users_this_company.id')) #человек который записался
     connect_user = db.relationship('CompanyUsers')
@@ -324,7 +326,7 @@ class ServiceEvent(db.Model):
     def __init__(self, event_id, service_id, windows_service):
         self.event_id = event_id
         self.service_id = service_id
-        self.count_service_this_event = windows_service
+        self.count_service_this_event = rapidjson.dumps(windows_service)
 
         self.save_to_db()
 

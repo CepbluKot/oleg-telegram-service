@@ -1,8 +1,9 @@
 from models.all_models import *
 from routers.namespace.event_ns.queries import find_boundaries_week
+from operator import ge
 
 from .validate import FilterBooking as Filter, FreedomBooking as FrBooking
-from .schema import InfoBookingSchema
+from .schema import InfoBookingSchema, EventSchema
 
 from datetime import datetime
 
@@ -18,6 +19,13 @@ def get_all_booking():
     api_all_booking_schema = InfoBookingSchema(many=True)
 
     return api_all_booking_schema.dump(all_booking)
+
+def get_all_event():
+    now_date = datetime.now()
+    query_event = Event.query.filter(Event.day_end >= date(year=now_date.year, month=now_date.month, day=now_date.day))
+
+    api_all_event = EventSchema(many=True)
+    return api_all_event.dump(query_event)
 
 
 def get_filter_booking(new_filter: Filter):
@@ -45,7 +53,12 @@ def get_filter_booking(new_filter: Filter):
     if (new_filter.date_start_filter is not None) and (new_filter.date_end_filter is not None) \
             and (new_filter.this_date_filter is None):
         between_date = Event.day_start.between(new_filter.date_start_filter, new_filter.date_end_filter)
-        all_booking_service = all_booking_service.filter(between_date)
+        single_date = all_booking_service.filter(between_date)
+
+        many_date = all_booking_service.filter(Event.many_day is not None)
+        many_date = many_date.filter(Event.many_day.any(new_filter.date_start_filter, operator=ge))
+
+        all_booking_service = many_date
 
     if new_filter.time_start_filter is not None and new_filter.time_end_filter is not None:
         between_time = AllBooking.time_start.between(new_filter.time_start_filter, new_filter.time_end_filter)

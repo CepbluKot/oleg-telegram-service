@@ -2,8 +2,8 @@ from flask import request, jsonify
 from flask_restplus import Namespace, Resource, fields
 from datetime import time, date, datetime
 
-from .queries import get_all_booking, get_filter_booking, get_indo_calendar, find_freedom_booking
-from models.all_models import AllBooking, ServiceEvent
+from .queries import get_all_booking, get_filter_booking, get_indo_calendar, find_freedom_booking, get_all_event
+from models.all_models import AllBooking
 from .validate import FilterBooking as Filter
 
 
@@ -27,7 +27,7 @@ booking_inset = booking.model('BookingInsert', {
 @booking.route('')
 class Booking(Resource):
     def get(self):
-        return jsonify(get_all_booking())
+        return jsonify(get_all_event())
 
     @booking.expect(booking_inset)
     def post(self):

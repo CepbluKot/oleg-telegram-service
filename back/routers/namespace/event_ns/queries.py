@@ -12,7 +12,7 @@ cl = Calendar()
 
 
 def _base_query():
-    query = Event.query.filter(Event.day > date(year=now_date.year, month=now_date.month, day=now_date.day))
+    query = Event.query.filter(Event.day_end >= date(year=now_date.year, month=now_date.month, day=now_date.day))
     return query
 
 
