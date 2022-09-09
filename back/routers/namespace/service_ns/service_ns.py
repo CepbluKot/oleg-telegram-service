@@ -1,6 +1,7 @@
 from flask import request
 from flask_restplus import Namespace, Resource, fields
 from pydantic import ValidationError
+from datetime import time
 
 from models.all_models import MyService, ServiceStaffConnect
 from .queries import all_service, get_filter_services
@@ -8,12 +9,20 @@ from .validate import ValidateService as ValidateService
 from .validate import FilterServicesStaff as Filter
 from .validate import AllConnectServiceStaff as ConnectStaffService
 
+
+class TimeFormat(fields.Raw):
+    def format(self, value):
+        return time.strftime(value, "%H:%M")
+
+
 service = Namespace('service')
 
 
 add_service = service.model('service model', {
      "name_service": fields.String(description='new_service', required=True),
-     "price": fields.Float()
+     "price": fields.Float(),
+    "duration": TimeFormat(),
+    "max_booking": fields.Integer()
 })
 
 list_add_service = service.model('list adder model', {

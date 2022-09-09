@@ -10,7 +10,7 @@ class ServiceEventSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
         include_relationships = True
 
-    service_connect = ma.Nested(ServiceSchema(exclude=('service_se',)))
+    service_connect = ma.Nested(ServiceSchema(exclude=('service_se', 'duration', 'service_ab', 'ssc_service_se')))
 
 
 class EventSchema(ma.SQLAlchemyAutoSchema):
