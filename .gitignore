@@ -1,0 +1,10 @@
+__pycache__
+.idea
+back/.idea
+back/env
+telegram_bot/config.json
+telegram_bot/bot_venv
+back/migrations
+back/old_version
+env
+
