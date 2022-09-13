@@ -7,4 +7,5 @@ with open("config.json") as file:
 prepod_bot = Bot(token=config["prepodBotToken"])
 student_bot = Bot(token=config["studentBotToken"])
 admin_bot = Bot(token=config["adminBotToken"])
+customer_bot = Bot(token=config["customerBotToken"])
 admin_ids = config["adminIds"]

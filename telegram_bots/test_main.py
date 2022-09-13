@@ -9,15 +9,17 @@ from bot_modules.settings.settings_handlers.settings_handlers_abstraction import
 )
 
 
-from bots import student_bot, prepod_bot, admin_bot
+from bots import student_bot, prepod_bot, admin_bot, customer_bot
 
 from bot_modules.register.register_handlers.register_handlers_abstraction import (
     PrepodHandlersAbstraction,
     StudentHandlersAbstraction,
+    CustomerHandlersAbstraction
 )
 from bot_modules.register.register_handlers.register_handlers_realisation import (
     PrepodHandlers,
     StudentHandlers,
+    CustomersHandlers
 )
 
 from bot_modules.forms.forms_handlers.forms_constructor.forms_constructor_handlers_realisation import (
@@ -100,6 +102,16 @@ async def admin_commands(bot: Bot):
     await bot.set_my_commands(student_commands)
 
 
+
+async def customer_commands(bot: Bot):
+    student_commands = [
+        BotCommand(command="/register", description="Регистация"),
+        # BotCommand(command="/status", description="Полученные формы"),
+        # BotCommand(command="/settings", description="Настройки"),
+        # BotCommand(command="/cancel", description="Отменить текущее действие"),
+    ]
+    await bot.set_my_commands(student_commands)
+
 async def main():
     prepod_bot_dispatcher = Dispatcher(
         prepod_bot, storage=MemoryStorage(), loop=asyncio.get_event_loop()
@@ -113,55 +125,25 @@ async def main():
         admin_bot, storage=MemoryStorage(), loop=asyncio.get_event_loop()
     )
 
+    customer_bot_dispatcher = Dispatcher(
+        customer_bot, storage=MemoryStorage(), loop=asyncio.get_event_loop()
+    )
+
     prepod_bot_dispatcher.loop.create_task(prepod_commands(prepod_bot))
     student_bot_dispatcher.loop.create_task(student_commands(student_bot))
     admin_bot_dispatcher.loop.create_task(admin_commands(admin_bot))
+    customer_bot_dispatcher.loop.create_task(customer_commands(customer_bot))
 
-    prepod_reg = PrepodHandlers()
-    stud_reg = StudentHandlers()
+    customer_reg = CustomersHandlers()
+    customer_reg_abs = CustomerHandlersAbstraction(customer_reg)
 
-    prep_reg_abs = PrepodHandlersAbstraction(prepod_reg)
-    stud_reg_abs = StudentHandlersAbstraction(stud_reg)
-
-    constructor = FormsConstructorHandlersRealisation()
-    constructor_abs = FormsConstructorHandlersAbstracation(constructor)
-
-    edit = FormsEditorHandlersRealisation()
-    edit_abs = FormsEditorHandlersAbstraction(edit)
-
-    menu = FormsMenuHandlersRealisation()
-    menu_abs = FormsMenuHandlersAbstraction(menu)
-
-    prepod_status = PrepodHandlersStatus()
-    prepod_status_abs = PrepodHandlersStatusAbstraction(prepod_status)
-
-    student_status = StudentHandlersStatus()
-    student_status_abs = StudentHandlersStatusAbstraction(student_status)
-
-    settings = SettingsHandlers()
-    settings_abs = SettingsHandlersAbstraction(settings)
-
-    prepod_status_abs.register_handlers_prepod_status(prepod_bot_dispatcher)
-    student_status_abs.register_handlers_student_status(student_bot_dispatcher)
-
-    prep_reg_abs.prepod_registration_handlers_registrator(prepod_bot_dispatcher)
-    stud_reg_abs.student_registration_handlers_register(student_bot_dispatcher)
-    edit_abs.forms_editor_handlers_registrator(prepod_bot_dispatcher)
-    constructor_abs.forms_constructor_habdlers_registrartor(prepod_bot_dispatcher)
-    menu_abs.forms_menu_handlers_registrator(prepod_bot_dispatcher)
-    settings_abs.settings_handlers_registrator(student_bot_dispatcher)
-    settings_abs.settings_handlers_registrator(prepod_bot_dispatcher)
-
-    register_handlers_cancel(student_bot_dispatcher)
-    register_handlers_cancel(prepod_bot_dispatcher)
-
-    useless_message_handler_registerer(student_bot_dispatcher)
+    customer_reg_abs.register_handlers_registrator(dp=customer_bot_dispatcher)
 
     await asyncio.gather(
-        prepod_bot_dispatcher.start_polling(),
-        student_bot_dispatcher.start_polling(),
-        admin_bot_dispatcher.start_polling(),
+        # prepod_bot_dispatcher.start_polling(),
+        # student_bot_dispatcher.start_polling(),
+        # admin_bot_dispatcher.start_polling(),
+        customer_bot_dispatcher.start_polling()
     )
-
 
 asyncio.run(main())

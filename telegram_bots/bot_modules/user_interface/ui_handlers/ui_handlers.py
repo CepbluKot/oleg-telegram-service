@@ -21,7 +21,7 @@ from bot_modules.user_interface.input_output_repositories import (
     completing_forms_dispatcher_abs,
     ui_repostiory_abs,
 )
-from bot_modules.register.input_output_realisations import register_abs
+from bot_modules.register.input_output_realisations import register_for_university_abs
 from bot_modules.settings.input_output_repositories import settings_repository_abs
 
 
@@ -152,7 +152,7 @@ class PrepodHandlersStatus(PrepodHandlersStatusInterface):
         return not ui_repostiory_abs.check_is_user_selected_ui(user_id=message.chat.id)
 
     def status_exceptions(self, message: types.Message):
-        return register_abs.check_is_user_in_register_data(user_id=message.chat.id)
+        return register_for_university_abs.check_is_user_in_register_data(user_id=message.chat.id)
 
     def register_handlers_prepod_status(self, dp: Dispatcher):
         dp.register_message_handler(self.choose_ui_type, commands="start")
@@ -455,7 +455,7 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
         return not ui_repostiory_abs.check_is_user_selected_ui(user_id=message.chat.id)
 
     def status_exceptions(self, message: types.Message):
-        return register_abs.check_is_user_in_register_data(user_id=message.chat.id)
+        return register_for_university_abs.check_is_user_in_register_data(user_id=message.chat.id)
 
     def register_handlers_student_status(self, dp: Dispatcher):
         dp.register_message_handler(self.choose_ui_type, commands="start")

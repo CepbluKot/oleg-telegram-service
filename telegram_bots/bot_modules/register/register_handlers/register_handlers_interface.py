@@ -67,3 +67,59 @@ class StudentHandlersInterface(BaseRegisterHandlersInterface):
     @abstractmethod
     def student_registration_handlers_register(self, dp: Dispatcher):
         raise NotImplementedError
+
+
+class CustomersHandlersInterface(ABC):
+    @abstractmethod
+    async def already_registered(self, message: types.Message, state: FSMContext):
+        " Проверяет, зарегистрирован ли пользователь"
+        raise NotImplemented
+
+    @abstractmethod
+    async def get_user_name(self, message: types.Message, state: FSMContext):
+        " (register_user FSM) Ждем ввода имени"
+        raise NotImplemented
+
+    @abstractmethod
+    async def get_phone_number(self, message: types.Message, state: FSMContext):
+        " (register_user FSM) Получаем имя и предлагаем вести номер телефона"
+        raise NotImplemented
+
+    @abstractmethod
+    async def save_to_storage(self, message: types.Message, state: FSMContext):
+        " (register_user FSM) Получаем номер телефона и добавляем пользователя в хранилище"
+        raise NotImplemented
+
+    @abstractmethod
+    async def register_change_true(self, call: types.CallbackQuery, state: FSMContext):
+        " (already_registered Func) Выбираем какие рег. данные изменить"
+        raise NotImplemented
+
+    @abstractmethod
+    async def register_change_false(self, call: types.CallbackQuery, state: FSMContext):
+        " (already_registered Func) Не меняем рег. данные"
+        raise NotImplemented
+
+    @abstractmethod
+    async def register_change_user_name(self, call: types.CallbackQuery, state: FSMContext):
+        " (register_change_true Func) Предлагаем ввести новое имя"
+        raise NotImplemented
+
+    @abstractmethod
+    async def register_change_phone_number(self, call: types.CallbackQuery, state: FSMContext):
+        " (register_change_true Func) Предлагаем ввести новый номер телефона"
+        raise NotImplemented
+
+    @abstractmethod
+    async def register_change_user_name_set(self, message: types.Message, state: FSMContext):
+        " (register_change_user_name_fsm FSM) Получаем новое имя и обновляем данные"
+        raise NotImplemented
+
+    @abstractmethod
+    async def register_change_phone_number_set(self, message: types.Message, state: FSMContext):
+        " (register_change_group_fsm FSM) Получаем новую группу и обновляем данные"
+        raise NotImplemented
+
+    @abstractmethod
+    def register_handlers_registrator(self, dp: Dispatcher):
+        raise NotImplemented

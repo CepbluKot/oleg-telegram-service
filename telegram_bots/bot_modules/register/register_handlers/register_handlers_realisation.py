@@ -3,9 +3,10 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-from bot_modules.register.data_structures import Student, Prepod
+from bot_modules.register.data_structures import Customer, Student, Prepod
 
 from bot_modules.register.register_handlers.register_handlers_interface import (
+    CustomersHandlersInterface,
     PrepodHandlersInterface,
     StudentHandlersInterface,
 )
@@ -19,7 +20,8 @@ from bot_modules.register.input_output_repositories import (
     currently_changing_register_data_repository_abs,
 )
 from bot_modules.register.input_output_realisations import (
-    register_abs,
+    register_for_university_abs,
+    register_for_customers_abs,
     register_edit_prepod_abs,
     register_edit_student_abs,
 )
@@ -46,11 +48,11 @@ class PrepodHandlers(PrepodHandlersInterface):
 
     async def already_registered(self, message: types.Message):
         "Проверяет, зарегистрирован ли пользователь"
-        if register_abs.get_user_data(user_id=message.chat.id).role == "student":
+        if register_for_university_abs.get_user_data(user_id=message.chat.id).role == "student":
             await message.answer("Студент, топай регаться в свой бот, понятно да")
             return
 
-        prepod_data = register_abs.get_user_data(user_id=message.chat.id)
+        prepod_data = register_for_university_abs.get_user_data(user_id=message.chat.id)
         await message.answer(
             "Вы уже зарегистрированы"
             + "\nВы: "
@@ -97,7 +99,7 @@ class PrepodHandlers(PrepodHandlersInterface):
             related_groups=[],
         )
 
-        register_abs.add_user(user=prepod_data)
+        register_for_university_abs.add_user(user=prepod_data)
         await message.answer(
             "Рег. данные отправлены на проверку",
             reply_markup=types.ReplyKeyboardRemove(),
@@ -141,7 +143,7 @@ class PrepodHandlers(PrepodHandlersInterface):
         new_fio = message.text
         register_edit_prepod_abs.set_new_fio(user_id=message.chat.id, new_fio=new_fio)
         await state.finish()
-        prepod_data = register_abs.get_user_data(user_id=message.chat.id)
+        prepod_data = register_for_university_abs.get_user_data(user_id=message.chat.id)
         await message.answer(
             "Обновленные данные отправлены на проверку: "
             + "\nВы: "
@@ -158,7 +160,7 @@ class PrepodHandlers(PrepodHandlersInterface):
     def already_registered_exceptions(self, user_id: int):
         return (
             not forms_constructor_abs.check_is_user_is_creating_form(user_id=user_id)
-            and register_abs.check_is_user_in_register_data(user_id=user_id)
+            and register_for_university_abs.check_is_user_in_register_data(user_id=user_id)
             and not currently_changing_register_data_repository_abs.check_is_user_in_list(
                 user_id=user_id
             )
@@ -170,8 +172,8 @@ class PrepodHandlers(PrepodHandlersInterface):
 
     def not_confirmed_register_exceptions(self, user_id: int):
         return (
-            register_abs.check_is_user_in_register_data(user_id=user_id)
-            and not register_abs.get_user_data(user_id=user_id).is_register_approved
+            register_for_university_abs.check_is_user_in_register_data(user_id=user_id)
+            and not register_for_university_abs.get_user_data(user_id=user_id).is_register_approved
             and not currently_changing_register_data_repository_abs.check_is_user_in_list(
                 user_id=user_id
             )
@@ -189,7 +191,7 @@ class PrepodHandlers(PrepodHandlersInterface):
         )
 
     def not_registered_exceptions(self, user_id):
-        return not register_abs.check_is_user_in_register_data(user_id=user_id)
+        return not register_for_university_abs.check_is_user_in_register_data(user_id=user_id)
 
     def prepod_registration_handlers_registrator(self, dp: Dispatcher):
         dp.register_message_handler(
@@ -259,7 +261,7 @@ class StudentHandlers(StudentHandlersInterface):
     async def already_registered(self, message: types.Message):
         "Проверяет, зарегистрирован ли пользователь"
 
-        if register_abs.get_user_data(user_id=message.chat.id).role == "prepod":
+        if register_for_university_abs.get_user_data(user_id=message.chat.id).role == "prepod":
             answer = await message.answer(
                 "Препод, топай регаться в свой бот, понятно да"
             )
@@ -269,7 +271,7 @@ class StudentHandlers(StudentHandlersInterface):
             )
             return
 
-        student_data = register_abs.get_user_data(user_id=message.chat.id)
+        student_data = register_for_university_abs.get_user_data(user_id=message.chat.id)
         await message.answer(
             "Вы уже зарегистрированы: "
             + "\nВы: "
@@ -345,7 +347,7 @@ class StudentHandlers(StudentHandlersInterface):
             group=user_data["chosen_group"],
         )
 
-        register_abs.add_user(user=student_data)
+        register_for_university_abs.add_user(user=student_data)
         answer = await message.answer(
             "Рег. данные отправлены на проверку",
             reply_markup=types.ReplyKeyboardRemove(),
@@ -477,7 +479,7 @@ class StudentHandlers(StudentHandlersInterface):
         )
 
     def alreadyRegisteredExceptions(self, user_id: int):
-        return register_abs.check_is_user_in_register_data(
+        return register_for_university_abs.check_is_user_in_register_data(
             user_id=user_id
         ) and not currently_changing_register_data_repository_abs.check_is_user_in_list(
             user_id=user_id
@@ -485,8 +487,8 @@ class StudentHandlers(StudentHandlersInterface):
 
     def notConfirmedRegisterExceptions(self, user_id: int):
         return (
-            register_abs.check_is_user_in_register_data(user_id=user_id)
-            and not register_abs.get_user_data(user_id=user_id).is_register_approved
+            register_for_university_abs.check_is_user_in_register_data(user_id=user_id)
+            and not register_for_university_abs.get_user_data(user_id=user_id).is_register_approved
             and not currently_changing_register_data_repository_abs.check_is_user_in_list(
                 user_id=user_id
             )
@@ -500,7 +502,7 @@ class StudentHandlers(StudentHandlersInterface):
         )
 
     def notRegisteredExceptions(self, user_id):
-        return not register_abs.check_is_user_in_register_data(user_id=user_id)
+        return not register_for_university_abs.check_is_user_in_register_data(user_id=user_id)
 
     def student_registration_handlers_register(self, dp: Dispatcher):
         dp.register_message_handler(
@@ -575,3 +577,175 @@ class StudentHandlers(StudentHandlersInterface):
         dp.register_callback_query_handler(
             self.ask_edited_group, text="register_change_group"
         )
+
+
+class CustomersHandlers(CustomersHandlersInterface):
+    class RegisterUserFSM(StatesGroup):
+        " FSM для регистрации пользователя"
+        input_user_name = State()
+        waiting_for_user_name = State()
+        waiting_for_phone_number = State()
+
+
+    class RegisterChangePhoneNumberFSM(StatesGroup):
+        " FSM для смены группы пользователя"
+        waiting_for_new_phone_number = State()
+
+
+    class RegisterChangeUserNameFSM(StatesGroup):
+        " FSM для смены имени пользователя"
+        waiting_for_new_user_name = State()
+
+
+    async def already_registered(self, message: types.Message, state: FSMContext):
+        " Проверяет, зарегистрирован ли пользователь"
+
+        current_user_data = register_for_customers_abs.get_user_data(user_id=message.chat.id)
+
+        await message.answer('Вы уже зарегистрированы: ' + '\nВы: ' + str(current_user_data.fio) + '; ' + 'Ваш номер телефона: ' + str(current_user_data.phone_number), reply_markup=types.ReplyKeyboardRemove())
+        
+        buttons = [
+            types.InlineKeyboardButton(
+                text="Да", callback_data="register_change_true"),
+            types.InlineKeyboardButton(
+                text="Нет", callback_data="register_change_false")
+        ]
+        keyboard = types.InlineKeyboardMarkup(row_width=2)
+        keyboard.add(*buttons)
+        await message.answer('Хотите изменить рег. данные?', reply_markup=keyboard)
+
+
+    async def get_user_name(self, message: types.Message, state: FSMContext):
+        " (register_user FSM) Ждем ввода имени"
+        await message.answer("Введите ваше имя")
+        await self.RegisterUserFSM.waiting_for_user_name.set()
+
+
+    async def get_phone_number(self, message: types.Message, state: FSMContext):
+        " (register_user FSM) Получаем имя и предлагаем вести номер телефона"
+        user_name = message.text
+        await state.update_data(user_name=user_name)
+        await message.reply('Введите ваш номер телефона')
+        await self.RegisterUserFSM.waiting_for_phone_number.set()
+
+
+    # async def wrong_phone_number(message: types.Message):
+    #     " (register_user FSM) Срабатывает, если найдена ошибка в формате номера"
+    #     return await message.reply('Пожалуйста, введите номер телефона в правильном формате')
+
+
+    async def save_to_storage(self, message: types.Message, state: FSMContext):
+        " (register_user FSM) Получаем номер телефона и добавляем пользователя в хранилище"
+        user_data = await state.get_data()
+        phone_number = message.text
+        await message.answer( 'Вы зарегистрированы' + '\nВаше имя: ' + user_data['user_name'] + '; Ваш номер телефона: ' + phone_number, reply_markup=types.ReplyKeyboardRemove())
+        
+        customer_data = Customer(
+            user_id=message.chat.id,
+            fio=user_data['user_name'],
+            phone_number=phone_number,
+        )
+
+        register_for_customers_abs.add_user(user=customer_data)
+        await state.finish()
+
+
+    async def register_change_true(self, call: types.CallbackQuery, state: FSMContext):
+        " (already_registered Func) Выбираем какие рег. данные изменить"
+        await call.answer()
+        await types.Message.edit_reply_markup(self=call.message, reply_markup=None)
+
+        buttons = [
+            types.InlineKeyboardButton(
+                text="Имя", callback_data="register_change_user_name"),
+            types.InlineKeyboardButton(
+                text="Номер телефона", callback_data="register_change_phone_number")
+        ]
+
+        keyboard = types.InlineKeyboardMarkup(row_width=2)
+        keyboard.add(*buttons)
+        await call.message.answer('Что именно изменить?', reply_markup=keyboard)
+
+
+    async def register_change_false(self, call: types.CallbackQuery, state: FSMContext):
+        " (already_registered Func) Не меняем рег. данные"
+        await call.answer()
+        await types.Message.edit_reply_markup(self=call.message, reply_markup=None)
+        await call.message.answer('Окес, ничего не меняем')
+
+
+    async def register_change_user_name(self, call: types.CallbackQuery, state: FSMContext):
+        " (register_change_true Func) Предлагаем ввести новое имя"
+        await call.answer()
+        await types.Message.edit_reply_markup(self=call.message, reply_markup=None)
+        await self.RegisterChangeUserNameFSM.waiting_for_new_user_name.set()
+        await call.message.answer('Введите новое имя')
+
+
+    async def register_change_phone_number(self, call: types.CallbackQuery, state: FSMContext):
+        " (register_change_true Func) Предлагаем ввести новый номер телефона"
+        await call.answer()
+        await types.Message.edit_reply_markup(self=call.message, reply_markup=None)
+        await self.RegisterChangePhoneNumberFSM.waiting_for_new_phone_number.set()
+        await call.message.answer('Введите новый номер телефона')
+
+
+    # register_change_user_name_fsm.waiting_for_new_user_name
+    async def register_change_user_name_set(self, message: types.Message, state: FSMContext):
+        " (register_change_user_name_fsm FSM) Получаем новое имя и обновляем данные"
+        new_user_name = message.text
+
+        current_user_data = register_for_customers_abs.get_user_data(user_id=message.chat.id)
+        new_user_data = Customer(
+            user_id=current_user_data.user_id,
+            fio=new_user_name,
+            phone_number=current_user_data.new_phone_number
+        )
+
+        register_for_customers_abs.update_user_data(newUserData=new_user_data)
+        
+
+        await message.reply(' Рег. данные обновлены, ваши текущие данные:\n' + ' Ваше имя: ' + new_user_name + '; Ваш номер телефона:' + current_user_data.new_phone_number)
+        await state.finish()
+
+    
+    # register_change_phone_number_fsm.waiting_for_new_phone_number
+    async def register_change_phone_number_set(self, message: types.Message, state: FSMContext):
+        " (register_change_group_fsm FSM) Получаем новую группу и обновляем данные"
+        new_phone_number = message.text
+
+        current_user_data = register_for_customers_abs.get_user_data(user_id=message.chat.id)
+        new_user_data = Customer(
+            user_id=current_user_data.user_id,
+            fio=current_user_data.fio,
+            phone_number=new_phone_number
+        )
+
+        register_for_customers_abs.update_user_data(newUserData=new_user_data)
+        
+        await message.reply('Рег. данные обновлены, ваши текущие данные:\n' + ' Ваше имя: ' + current_user_data.fio + '; Ваш номер телефона:' + new_phone_number)
+        await state.finish()
+
+
+    def register_handlers_registrator(self, dp: Dispatcher):
+        dp.register_message_handler(
+            self.already_registered, lambda message: register_for_customers_abs.check_is_user_in_register_data(message.chat.id), commands='register')
+        
+        dp.register_message_handler(self.get_user_name, commands="register", state="*")
+        dp.register_message_handler(self.get_phone_number, state=self.RegisterUserFSM.waiting_for_user_name)
+        dp.register_message_handler(
+            self.save_to_storage, state=self.RegisterUserFSM.waiting_for_phone_number)
+
+        dp.register_message_handler(
+            self.register_change_user_name_set, state=self.RegisterChangeUserNameFSM.waiting_for_new_user_name)
+        dp.register_message_handler(
+            self.register_change_phone_number_set, state=self.RegisterChangePhoneNumberFSM.waiting_for_new_phone_number)
+
+        dp.register_callback_query_handler(
+            self.register_change_true, text="register_change_true")
+        dp.register_callback_query_handler(
+            self.register_change_false, text="register_change_false")
+        dp.register_callback_query_handler(
+            self.register_change_user_name, text="register_change_user_name")
+        dp.register_callback_query_handler(
+            self.register_change_phone_number, text="register_change_phone_number")
