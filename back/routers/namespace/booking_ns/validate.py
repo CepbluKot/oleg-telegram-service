@@ -30,6 +30,11 @@ class BookingSchema(BaseModel):
         return values
 
 
+class AnswerCalendar (BaseModel):
+    day: date
+    booking: list
+
+
 class FilterClientBooking(BaseModel):
     name: Optional[List] = None
     tg_id: Optional[List] = None

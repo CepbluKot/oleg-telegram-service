@@ -206,12 +206,13 @@ class Event(db.Model):
 
         print(weekdays_list, day_end - day_start)
         if weekdays_list is not None or day_end - day_start > timedelta(days=0):
+            print('EEEEEEEEEEEEEE')
             days = []
             for single_date in self.daterange(day_start, day_end):
-                    if weekday is not None:
+                    if weekdays_list is not None and len(weekdays_list) != 0:
                         if weekday(single_date.year, single_date.month, single_date.day) not in weekdays_list:
                             continue
-                    print(single_date)
+                    print('bbbb')
                     days.append(date(single_date.year, single_date.month, single_date.day))
 
             self.many_day = days
@@ -315,11 +316,11 @@ class ServiceEvent(db.Model):
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('event_company.id'), nullable=False)
-    event_connect = db.relationship('Event', backref='event_se')
+    event_id = db.Column(db.Integer, db.ForeignKey('event_company.id', ondelete="CASCADE"), nullable=False)
+    event_connect = db.relationship('Event', backref='event_se', cascade='all, delete', passive_deletes=True)
 
-    service_id = db.Column(db.Integer, db.ForeignKey('myservice.id'), nullable=False)
-    service_connect = db.relationship('MyService', backref='service_se')
+    service_id = db.Column(db.Integer, db.ForeignKey('myservice.id', ondelete="CASCADE"), nullable=False)
+    service_connect = db.relationship('MyService', backref='service_se', cascade='all, delete', passive_deletes=True)
 
     count_service_this_event = db.Column(db.JSON, nullable=False)
 
@@ -338,7 +339,10 @@ class ServiceEvent(db.Model):
     @classmethod
     def event_search_by_service(cls, service_name):
         find_service = MyService.find_by_name(service_name)
-        return cls.query.filter(db.and_(cls.service_id == find_service.id)).options(db.load_only(cls.event_id)).all()
+        try:
+            return cls.query.filter(db.and_(cls.service_id == find_service.id)).options(db.load_only(cls.event_id)).all()
+        except AttributeError:
+            return None
 
     def save_to_db(self):
         try:

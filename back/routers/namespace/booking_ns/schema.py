@@ -11,10 +11,11 @@ class InfoBookingSchema(ma.SQLAlchemyAutoSchema):
         model = AllBooking
         load_instance = True
         include_relationships = True
+        exclude = ('connect_staff',  )
 
     connect_user = ma.Nested(InfoUsersComSchema())
-    connect_event = ma.Nested(EventSchema())
-    connect_service = ma.Nested(ServiceSchema())
+    connect_event = ma.Nested(EventSchema(exclude=('event_booking', 'event_se', )))
+    connect_service = ma.Nested(ServiceSchema(exclude=('id', 'ssc_service_se', 'service_se', 'service_ab',)))
 
 
 class EventSchema(ma.SQLAlchemyAutoSchema):

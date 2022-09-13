@@ -1,5 +1,5 @@
 from flask import request
-from setting_web import cross_origin
+from setting_web import cross_origin, db
 from pydantic import ValidationError
 from flask_restplus import Namespace, Resource, fields
 from datetime import time
@@ -89,8 +89,7 @@ class Booking(Resource):
                 else:
                     return {"message": "DONT ADD CONNECT"}, 404
 
-            for one_connect in object_connect:
-                one_connect.save_to_db()
+            db.session.add_all(object_connect)
 
             api_schema_event = EventSchema()
             return api_schema_event.dump(find_new_event), 200

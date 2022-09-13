@@ -63,11 +63,11 @@ class CalendarBooking(Resource):
         try:
             cal_date = datetime.strptime(cal_date, '%Y-%m-%d').date()
         except ValueError:
-            return {"Error": "not correct data-format in query"}
+            return {"Error": "not correct data-format in query"}, 404
 
         calendar_date = Filter()
         calendar_date.this_date_filter = cal_date
-        return get_indo_calendar(calendar_date)
+        return get_indo_calendar(calendar_date), 200
 
 
 freedom_booking = booking.model('FreedomBooking', {

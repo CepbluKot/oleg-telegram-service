@@ -59,19 +59,20 @@ def get_filter_work_day(filter_event: Filter):
 
 def find_boundaries_week(day):
     mycal = cl.monthdatescalendar(day.year, day.month)
-    start_end_week = []
+    start_end_week = [] #beginning and end of the week
+    all_week = [] #the whole week
 
     for week in mycal:
         if day in week:
             start_end_week.append(week[0])
             start_end_week.append(week[-1])
 
+            all_week = week
             # if start_end_week not in day:
             #     day.append(start_end_week)
             break
 
-    print(start_end_week)
-    return start_end_week
+    return start_end_week, all_week
 
 
 def check_exit_event(this_ck_date):
