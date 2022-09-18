@@ -1,7 +1,6 @@
 from abc import abstractmethod, ABC
 from typing import List
-from bot_modules.register.data_structures import User
-
+from telegram_bots.bot_modules.register.data_structures import User
 
 class RegisterForUniversityInterface(ABC):
     @abstractmethod

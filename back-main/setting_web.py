@@ -27,7 +27,7 @@ flask_app.config['CORS_HEADERS'] = 'application/json'
 flask_app.config['FLASK_ENV'] = 'development'
 flask_app.config['SECRET_KEY'] = 'pop'
 flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-flask_app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:admin@localhost/system_control'
+flask_app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:admin@localhost/admin_control'
 
 flask_app.config['JWT_SECRET_KEY'] = 'key-popov-gay'
 flask_app.config['RESTPLUS_MASK_SWAGGER'] = False
