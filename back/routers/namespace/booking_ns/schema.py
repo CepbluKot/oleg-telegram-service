@@ -1,9 +1,9 @@
 from setting_web import flask_app, db, ma
-from models.all_models import AllBooking, Event, ServiceEvent
+from back.models.booking_models import AllBooking, Event, ServiceEvent
 
-from routers.namespace.event_ns.schema import EventSchema
-from routers.namespace.service_ns.schema import ServiceSchema
-from routers.namespace.client_ns.schema import InfoUsersComSchema
+from back.routers.namespace.event_ns.schema import EventSchema
+from back.routers.namespace.service_ns.schema import ServiceSchema
+from back.routers.namespace.client_ns.schema import InfoUsersComSchema
 
 
 class InfoBookingSchema(ma.SQLAlchemyAutoSchema):

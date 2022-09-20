@@ -7,7 +7,7 @@ from datetime import time
 from .validate import ValidateEvent, FilterEvent as Filter, WindowDataService
 from .queries import get_filter_work_day, find_boundaries_week, all_working_date
 from .schema import EventSchema
-from models.all_models import Event, ServiceEvent, MyService
+from back.models.booking_models import Event, ServiceEvent, MyService
 
 
 event = Namespace('event', 'This-Event_API')

@@ -4,7 +4,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask import Response
 from werkzeug.exceptions import HTTPException
 
-from models.all_models  import *
+from back.models.booking_models import *
 
 
 class AuthException(HTTPException):

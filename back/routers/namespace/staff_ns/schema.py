@@ -1,5 +1,5 @@
 from setting_web import ma
-from models.all_models import MyStaff
+from back.models.booking_models import MyStaff
 
 
 class StaffSchema(ma.SQLAlchemyAutoSchema):

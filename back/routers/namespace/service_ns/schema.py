@@ -1,5 +1,5 @@
 from setting_web import ma
-from models.all_models import MyService, ServiceStaffConnect
+from back.models.booking_models import MyService, ServiceStaffConnect
 
 
 class ServiceSchema(ma.SQLAlchemyAutoSchema):

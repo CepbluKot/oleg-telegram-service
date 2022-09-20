@@ -37,10 +37,8 @@ class Users(db.Model):
         return cls.query.filter(cls.login == login).first()
 
 
-
-
 class Department(db.Model):
-    _tablename__ = 'department_info'
+    __tablename__ = 'department_info'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, unique=True, nullable=False)
     ip_service = db.Column(db.String)

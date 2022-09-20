@@ -136,7 +136,7 @@ class Event(db.Model):
     __tablename__ = 'event_company'
 
     __table_args__ = (
-        db.UniqueConstraint("id", "name_event", "day_start", "day_end", "start_event", "end_event"),
+        db.UniqueConstraint("name_event", "day_start", "day_end", "start_event", "end_event"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -271,7 +271,7 @@ class ServiceEvent(db.Model):
     __tablenmae__ = 'event_service'
 
     __table_args__ = (
-        db.UniqueConstraint("id", "event_id", "service_id"),
+        db.UniqueConstraint("event_id", "service_id"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -329,7 +329,7 @@ class ServiceStaffConnect(db.Model):
     __tablename__ = 'service_staff_connect'
 
     __table_args__ = (
-        db.UniqueConstraint("id", "service_id", "staff_id"),
+        db.UniqueConstraint("service_id", "staff_id"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

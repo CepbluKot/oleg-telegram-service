@@ -1,7 +1,7 @@
 from setting_web import ma
-from models.all_models import ServiceEvent, Event
+from back.models.booking_models import ServiceEvent, Event
 
-from routers.namespace.service_ns.schema import ServiceSchema
+from back.routers.namespace.service_ns.schema import ServiceSchema
 
 class ServiceEventSchema(ma.SQLAlchemyAutoSchema):
     """Дата класс прикрепления к одному дню"""

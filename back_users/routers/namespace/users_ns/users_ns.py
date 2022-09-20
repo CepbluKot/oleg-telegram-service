@@ -4,7 +4,7 @@ from flask import request, jsonify
 from flask_restplus import Resource, Namespace, fields
 from pydantic import ValidationError
 
-from models.all_models import Users
+from back_users.models.all_models import Users
 from .validate import ValidateRegister, ValidateLogin
 from setting_web import db, flask_app, get_jwt, verify_jwt_in_request, create_access_token, cross_origin
 

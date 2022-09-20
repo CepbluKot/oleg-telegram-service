@@ -1,4 +1,4 @@
-from models.all_models import CompanyUsers, AllBooking
+from back.models.booking_models import CompanyUsers, AllBooking
 
 from .schema import InfoUsersComSchema
 from .validate import FilterClient as Filter
@@ -24,7 +24,7 @@ def get_filter_client(filter_cl: Filter):
     client_data = _base_query()
 
     if filter_cl.tg_id is not None and len(filter_cl.tg_id) > 0:
-        client_data = client_data.filter(CompanyUsers.tg_id == filter_cl.tg_id)
+        client_data = client_data.filter(CompanyUsers.tg_id.in_(filter_cl.tg_id))
 
     if filter_cl.phone_num is not None and len(filter_cl.phone_num) > 0:
         client_data = client_data.filter(CompanyUsers.phone_num == filter_cl.phone_num)
@@ -33,7 +33,7 @@ def get_filter_client(filter_cl: Filter):
             and len(filter_cl.name) > 0:
         client_data = client_data.filter(CompanyUsers.name_client == filter_cl.name)
 
-    api_client_schema = InfoUsersComSchema()
+    api_client_schema = InfoUsersComSchema(many=True)
     return api_client_schema.dump(client_data)
 
 

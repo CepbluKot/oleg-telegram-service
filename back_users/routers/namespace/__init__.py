@@ -1,8 +1,8 @@
 from flask import Blueprint
 from flask_restplus import Api
-from routers.namespace.users_ns.users_ns import users
+from .users_ns.users_ns import users
 
-blueprint = Blueprint('documented_api', __name__, url_prefix='/api_main')
+blueprint = Blueprint('documented_api_users', __name__, url_prefix='/api_users')
 
 api_exten = Api(
     blueprint,

@@ -7,4 +7,6 @@ telegram_bots/bot_venv
 back/migrations
 back/old_version
 env
+setting_web.py
+migrations
 
