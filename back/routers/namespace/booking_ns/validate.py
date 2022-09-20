@@ -2,7 +2,7 @@ from pydantic import BaseModel, validator, conint, constr, root_validator
 from datetime import time, date
 
 from typing import Optional, List
-from routers.namespace.service_ns.queries import check_exit_service as verify_exit_service
+from back.routers.namespace.service_ns.queries import check_exit_service as verify_exit_service
 
 
 class BookingSchema(BaseModel):

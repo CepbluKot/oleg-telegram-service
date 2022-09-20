@@ -11,9 +11,13 @@ from flask_jwt_extended import get_jwt
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import verify_jwt_in_request
 from flask_jwt_extended import jwt_required
+import configparser
 
 import flask.scaffold
 flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
+
+config = configparser.ConfigParser()
+config.read('config_service.ini')
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 flask_app = Flask(__name__)

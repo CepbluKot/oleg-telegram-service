@@ -2,7 +2,7 @@ from flask_restplus import Resource, Namespace, fields
 from flask import request
 from pydantic import ValidationError
 
-from models.all_models import CompanyUsers
+from back.models.booking_models import CompanyUsers
 from .validate import RegisterClient, FilterClient as Filter
 from .queries import get_filter_client, all_client
 
@@ -31,6 +31,7 @@ def add_client(new_cl: dict):
 
 
 def update_client(upd_cl: dict):
+    print(upd_cl)
     try:
         upd_client = RegisterClient(**upd_cl)
     except ValidationError as e:
@@ -38,8 +39,10 @@ def update_client(upd_cl: dict):
 
     find_client = CompanyUsers.find_by_tg_id(upd_client.tg_id)
     if find_client:
-        find_client.name_client = upd_client.name
-        find_client.phone_num = upd_client.phone
+        if upd_client.name is not None:
+            find_client.name_client = upd_client.name
+        elif upd_client.phone is not None:
+            find_client.phone_num = upd_client.phone
 
         find_client.update_from_db()
         return get_filter_client(Filter(tg_id=[upd_client.tg_id])), 200
@@ -61,11 +64,11 @@ class Client(Resource):
         return update_client(request.get_json())
 
 
-@client.route('/int<tg_id>')
+@client.route('/int:<tg_id>')
 @client.doc(params={'tg_id': 'user tg id'})
 class OneClient(Resource):
     def get(self, tg_id):
-        return get_filter_client(Filter(tg_id=[tg_id])), 200
+        return get_filter_client(Filter(tg_id=[int(tg_id)])), 200
 
 
 client_filter_booking = client.model('FilterClient', {

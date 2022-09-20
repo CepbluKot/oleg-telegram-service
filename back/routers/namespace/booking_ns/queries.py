@@ -1,5 +1,5 @@
-from models.all_models import *
-from routers.namespace.event_ns.queries import find_boundaries_week
+from back.models.booking_models import *
+from back.routers.namespace.event_ns.queries import find_boundaries_week
 from operator import ge, le
 
 from .validate import FilterBooking as Filter, FreedomBooking as FrBooking, AnswerCalendar
@@ -112,6 +112,8 @@ def find_freedom_booking(name_service):
         info_booking = AllBooking.find_booking_by_event_id(all_event_id)
 
         answer = []
+
+        print(info_events)
         for one_event in info_events:
             print(one_event.weekdays)
             if one_event.weekdays is None or len(one_event.weekdays) == 0:

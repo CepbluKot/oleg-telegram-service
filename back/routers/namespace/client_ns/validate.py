@@ -16,9 +16,9 @@ MOBILE_NUMBER_TYPES = PhoneNumberType.MOBILE, PhoneNumberType.FIXED_LINE_OR_MOBI
 
 
 class RegisterClient(BaseModel):
-    name: constr(min_length=2, max_length=20)
+    name: Optional[str] = None
     tg_id: int
-    phone: constr(max_length=30)
+    phone: Optional[str] = None
 
     @validator('phone')
     def valid_phone_num(cls, v):

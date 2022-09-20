@@ -1,4 +1,4 @@
-from models.all_models import MyStaff
+from back.models.booking_models import MyStaff
 from .schema import StaffSchema
 
 from .validate import FilterStaff as Filter

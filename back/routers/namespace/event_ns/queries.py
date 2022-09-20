@@ -1,5 +1,5 @@
 from setting_web import db, ma
-from models.all_models import *
+from back.models.booking_models import *
 
 from calendar import Calendar
 from datetime import date, datetime

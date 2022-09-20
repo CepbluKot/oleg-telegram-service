@@ -1,10 +1,6 @@
 from .schema import ServiceSchema
-from models.all_models import MyService, ServiceStaffConnect, MyStaff
+from back.models.booking_models import MyService, ServiceStaffConnect, MyStaff
 from setting_web import db
-
-"SELECT name" \
-"FROM SERVICE"
-"WHERE id in (SELECT )"
 
 from .validate import FilterServicesStaff as Filter
 
@@ -12,7 +8,6 @@ from .validate import FilterServicesStaff as Filter
 def _base_query():
     res_query = MyService.query
     return res_query
-
 
 
 def all_service():

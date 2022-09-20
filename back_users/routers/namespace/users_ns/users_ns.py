@@ -4,7 +4,7 @@ from flask import request, jsonify
 from flask_restplus import Resource, Namespace, fields
 from pydantic import ValidationError
 
-from models.all_models import UsersConnectALL
+from back_users.models.all_models import Users
 from .validate import ValidateRegister, ValidateLogin
 from setting_web import db, flask_app, get_jwt, verify_jwt_in_request, create_access_token, cross_origin
 
@@ -29,7 +29,7 @@ class Register(Resource):
 
         try:
             new_user.hash_password = generate_password_hash(new_user.password)
-            UsersConnectALL(new_name=new_user.name,
+            Users(new_name=new_user.name,
                             login=new_user.login,
                             hash_password=new_user.hash_password)
         except:
@@ -67,7 +67,7 @@ class Login(Resource):
         except ValidationError as e:
             return {"message": e.json()}, 404
 
-        find_user = UsersConnectALL.find_by_login(login_us.login)
+        find_user = Users.find_by_login(login_us.login)
         if find_user:
             if check_password_hash(find_user.password, login_us.password):
                 access_token = create_access_token(

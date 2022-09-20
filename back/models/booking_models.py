@@ -66,47 +66,6 @@ class MyService(db.Model):
         db.session.commit()
 
 
-ROLE_EMPLOYEE = 0
-ROLE_ADMIN = 1
-
-
-class UsersConnectALL(db.Model):
-    __tablename__ = 'global_users'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    company_id = db.Column(db.Integer)
-    name = db.Column(db.String)
-    tg_id = db.Column(db.Integer)
-    role = db.Column(db.Integer, default=ROLE_EMPLOYEE)
-    login = db.Column(db.String, unique=True, nullable=False)
-    password = db.Column(db.Unicode, nullable=False)
-
-    default_set = db.Column(db.Integer, db.ForeignKey('default_setting.id'))
-    connect_default = db.relationship('DefaultSetting')
-
-    def __init__(self, new_name, login, hash_password, role=ROLE_EMPLOYEE):
-        self.name = new_name
-        self.login = login
-        self.role = role
-        self.password = hash_password
-        self.save_to_db()
-
-    @classmethod
-    def find_by_login(cls, login_):
-        return cls.query.filter(cls.login == login_).first()
-
-    def save_to_db(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update_from_db(self):
-        db.session.commit()
-
-    def delete_from_db(self):
-        db.session.delete(self)
-        db.session.commit()
-
-
 class MyStaff(db.Model):
     __tablename__ = 'mystaff'
 
@@ -177,7 +136,7 @@ class Event(db.Model):
     __tablename__ = 'event_company'
 
     __table_args__ = (
-        db.UniqueConstraint("id", "name_event", "day_start", "day_end", "start_event", "end_event"),
+        db.UniqueConstraint("name_event", "day_start", "day_end", "start_event", "end_event"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -312,7 +271,7 @@ class ServiceEvent(db.Model):
     __tablenmae__ = 'event_service'
 
     __table_args__ = (
-        db.UniqueConstraint("id", "event_id", "service_id"),
+        db.UniqueConstraint("event_id", "service_id"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -370,7 +329,7 @@ class ServiceStaffConnect(db.Model):
     __tablename__ = 'service_staff_connect'
 
     __table_args__ = (
-        db.UniqueConstraint("id", "service_id", "staff_id"),
+        db.UniqueConstraint("service_id", "staff_id"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

@@ -4,7 +4,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask import Response
 from werkzeug.exceptions import HTTPException
 
-from back.models.booking_models import *
+from models.all_models import *
 
 
 class AuthException(HTTPException):
@@ -33,17 +33,10 @@ class EventView(ModelView):
     create_modal = True
     edit_modal = True
 
-    #column_sortable_list = ['created_at']
 
+admin.add_view(ModelView(Users, db.session))
+admin.add_view(ModelView(Department, db.session))
+admin.add_view((ModelView(UserConnectDepartment, db.session)))
 
-admin.add_view(ModelView(DefaultSetting, db.session))
-admin.add_view(EventView(Event, db.session))
-admin.add_view(ModelView(CompanyUsers, db.session))
-admin.add_view(ModelView(MyService, db.session))
-admin.add_view(ModelView(MyStaff, db.session))
-#admin.add_view(ModelView(UsersConnectALL, db.session))
-admin.add_view(ModelView(AllBooking, db.session))
-admin.add_view(ModelView(ServiceEvent, db.session))
-admin.add_view(ModelView(ServiceStaffConnect, db.session))
 
 

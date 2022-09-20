@@ -1,10 +1,10 @@
-from bot_modules.forms.forms_realisation.forms_realisation_abstraction import (
+from telegram_bots.bot_modules.forms.forms_realisation.forms_realisation_abstraction import (
     FormsConstructorAbstracton,
     FormsMenuAbstraction,
     FormsEditorAbstraction,
     FormsSenderAbstraction,
 )
-from bot_modules.forms.forms_realisation.forms_realisation import (
+from telegram_bots.bot_modules.forms.forms_realisation.forms_realisation import (
     FormsConstructorRealisation,
     FormsMenuRealisation,
     FormsEditorRealisation,
