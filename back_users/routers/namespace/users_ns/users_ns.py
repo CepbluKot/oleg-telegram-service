@@ -73,7 +73,7 @@ class Login(Resource):
                 access_token = create_access_token(
                     "admin_user", additional_claims={"is_administrator": True}
                 )
-                return jsonify(access_token=access_token), 200
+                return {'access_token': access_token}, 200
             else:
                 return {"message": "YOU PASSWORD NOT CORRECT"}, 404
         else:

@@ -25,10 +25,12 @@ def _base_query_se():
 
 def all_working_date():
     """Все записи"""
-    all_date = _base_query().all()
+    all_date = _base_query()
     api_all_work_date = EventSchema(many=True)
 
-    return api_all_work_date.dump(all_date)
+    test = api_all_work_date.dump(all_date)
+    print(test)
+    return test
 
 
 def get_filter_work_day(filter_event: Filter):

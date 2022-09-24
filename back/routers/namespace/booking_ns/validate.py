@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator, conint, constr, root_validator
 from datetime import time, date
-
+import orjson
 from typing import Optional, List
 from back.routers.namespace.service_ns.queries import check_exit_service as verify_exit_service
 
@@ -52,10 +52,18 @@ class FilterBooking(BaseModel):
     time_end_filter: Optional[time] = None
 
 
+def orjson_dumps(v, *, default):
+    return orjson.dumps(v, default=default).decode()
+
+
 class FreedomBooking(BaseModel):
     day: date
     event: str
     intervals: List[List[time]]
+
+    # class Config:
+    #     json_loads = orjson.loads
+    #     json_dumps = orjson.loads
 
 
 

@@ -1,12 +1,13 @@
 from back.models.booking_models import *
 from back.routers.namespace.event_ns.queries import find_boundaries_week
 from operator import ge, le
+import orjson
 
 from .validate import FilterBooking as Filter, FreedomBooking as FrBooking, AnswerCalendar
 from .schema import InfoBookingSchema, EventSchema
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 def _base_query():
     """Базовый запрос"""
@@ -28,6 +29,19 @@ def get_all_event():
     api_all_event = EventSchema(many=True)
     return api_all_event.dump(query_event)
 
+
+def find_booking_this_day(dat: date):
+    all_booking_service = Event.query.join(AllBooking).filter(db.and_(AllBooking.day_booking == dat))
+
+    between_date = Event.day_start.between(dat, dat)
+    single_date = all_booking_service.filter(between_date)
+    many_date = all_booking_service.filter(Event.many_day is not None)
+    many_date = many_date.filter(Event.many_day.any(dat, operator=le))
+
+    all_booking_service = single_date.union(many_date)
+    api_all_booking_schema = EventSchema(many=True)
+
+    return api_all_booking_schema.dump(all_booking_service)
 
 def get_filter_booking(new_filter: Filter):
     all_booking_service = _base_query()
@@ -76,18 +90,13 @@ def get_indo_calendar(cor_date: Filter):
 
     answer_calendar = [] #example = [{day: "2022-01-22", booking = {}}, ]
     start_end_weeks, all_week = find_boundaries_week(cor_date.this_date_filter)
-
     try:
         for one_day in all_week:
             cor_date.this_date_filter = one_day
             one_answer_booking = AnswerCalendar(day=one_day.strftime('%Y-%m-%d'),
-                                                booking=get_filter_booking(cor_date))
+                                                booking=find_booking_this_day(one_day))
 
             answer_calendar.append(json.loads(one_answer_booking.json()))
-
-        # cor_date.date_start_filter = start_end_weeks[0]
-        # cor_date.date_end_filter = start_end_weeks[-1]
-        # cor_date.this_date_filter = None
     except:
         print("error: fun in get_indo_calendar")
         return None, 404
@@ -97,9 +106,10 @@ def get_indo_calendar(cor_date: Filter):
 
 def find_freedom_booking(name_service):
     con_ser_event = ServiceEvent.event_search_by_service(name_service)
-    info_service = MyService.query.filter(MyService.name_service == name_service).first()
+    info_service = MyService.find_by_name(name_service)
 
     all_event_id = []
+    answer = []
 
     try:
         for one_q in con_ser_event:
@@ -111,11 +121,8 @@ def find_freedom_booking(name_service):
 
         info_booking = AllBooking.find_booking_by_event_id(all_event_id)
 
-        answer = []
-
-        print(info_events)
         for one_event in info_events:
-            print(one_event.weekdays)
+            "Подготовка апи для одного события"
             if one_event.weekdays is None or len(one_event.weekdays) == 0:
                 intervals_list = [[one_event.start_event, one_event.end_event]]
                 interval_time = {"day": one_event.day_start,
@@ -124,7 +131,7 @@ def find_freedom_booking(name_service):
 
                 all_booking_this_ev = info_booking.filter(AllBooking.signup_event == one_event.id).all()
 
-                """Посмотреть как убрать повтор"""
+                """Поиск интервалов"""
                 for one_booking in all_booking_this_ev:
                     for iter_interval in range(len(intervals_list)):
                         if one_booking.time_start >= intervals_list[iter_interval][0] and one_booking.time_end <= \
@@ -140,18 +147,39 @@ def find_freedom_booking(name_service):
                                 intervals_list.append(right_intervals)
                             break
 
+                if info_service.duration is not None and info_service.duration != time(hour=0, minute=0, second=0):
+                    drop_interval_list = []
+                    for one_window in intervals_list:
+                        delta_duration = timedelta(hours=info_service.duration.hour,
+                                                   minutes=info_service.duration.minute)
+
+                        new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
+
+                        while one_window[1] > new_window.time():
+                            drop_interval_list.append([(one_window[0]),
+                                                       new_window.time()])
+                            one_window[0] = new_window.time()
+                            new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
+
+                    intervals_list = drop_interval_list
+
                 interval_time["intervals"] = intervals_list
                 answer.append(interval_time)
+
+                #дробь окон
             else:
+                "Подготовка апи для одного события"
                 for one_day in one_event.many_day:
-                    intervals_list = [[one_event.start_event, one_event.end_event - info_service.duration]]
+                    intervals_list = [[one_event.start_event, one_event.end_event]]
+
                     interval_time = {"day": one_day,
                                      "event": one_event.name_event,
                                      "intervals": intervals_list}
 
                     all_booking_this_ev = info_booking.filter(db.and_(AllBooking.signup_event == one_event.id,
                                                                       AllBooking.day == one_day)).all()
-                    """Посмотреть как убрать повтор"""
+
+                    """Поиск интервало"""
                     for one_booking in all_booking_this_ev:
                         for iter_interval in range(len(intervals_list)):
                             if one_booking.time_start >= intervals_list[iter_interval][0] and one_booking.time_end <= \
@@ -163,12 +191,29 @@ def find_freedom_booking(name_service):
                                 intervals_list.extend([left_intervals, right_intervals])
                                 break
 
+                    if info_service.duration is not None and info_service.duration != time(hour=0, minute=0, second=0):
+                        drop_interval_list = []
+                        for one_window in intervals_list:
+                            delta_duration = timedelta(hours=info_service.duration.hour,
+                                                       minutes=info_service.duration.minute)
+
+                            new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
+
+                            while one_window[1] > new_window.time():
+                                drop_interval_list.append([(one_window[0]),
+                                                           new_window.time()])
+                                one_window[0] = new_window.time()
+                                new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
+
+                        intervals_list = drop_interval_list
+
                     interval_time["intervals"] = intervals_list
                     answer.append(interval_time)
 
+
         new_answer = []
         for one_window in answer:
-            new_answer.append(FrBooking(**one_window).json())
+            new_answer.append(json.loads(FrBooking(**one_window).json()))
     except TypeError:
         return None, 404
 

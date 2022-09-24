@@ -56,7 +56,7 @@ class FilterBooking(Resource):
         res_data = get_filter_booking(add_filter)
 
 
-@booking.route('/calendar/string:<cal_date>')
+@booking.route('/calendar/<cal_date>')
 @booking.doc(params={'cal_date': 'date format 2022-05-27'})
 class CalendarBooking(Resource):
     def get(self, cal_date: str):

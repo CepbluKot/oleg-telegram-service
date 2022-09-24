@@ -222,7 +222,7 @@ class AllBooking(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     time_start = db.Column(db.Time)
     time_end = db.Column(db.Time)
-    day = db.Column(db.Date)
+    day_booking = db.Column(db.Date)
 
     signup_event = db.Column(db.Integer, db.ForeignKey('event_company.id')) #день_записи
     connect_event = db.relationship('Event', backref='event_booking')
@@ -275,11 +275,12 @@ class ServiceEvent(db.Model):
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('event_company.id', ondelete="CASCADE"), nullable=False)
-    event_connect = db.relationship('Event', backref='event_se', cascade='all, delete', passive_deletes=True)
 
-    service_id = db.Column(db.Integer, db.ForeignKey('myservice.id', ondelete="CASCADE"), nullable=False)
-    service_connect = db.relationship('MyService', backref='service_se', cascade='all, delete', passive_deletes=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event_company.id'), nullable=False)
+    event_connect = db.relationship('Event', backref=db.backref('event_se', cascade="all, delete-orphan"), lazy='joined')
+
+    service_id = db.Column(db.Integer, db.ForeignKey('myservice.id'), nullable=False)
+    service_connect = db.relationship('MyService', backref=db.backref('service_se', cascade="all, delete-orphan"), passive_deletes=False)
 
     count_service_this_event = db.Column(db.JSON, nullable=False)
 
