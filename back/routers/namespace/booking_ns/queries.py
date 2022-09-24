@@ -63,7 +63,7 @@ def get_filter_booking(new_filter: Filter):
 
     """Filter about Date and Time"""
     if new_filter.this_date_filter is not None:
-        all_booking_service = all_booking_service.filter(AllBooking.day == new_filter.this_date_filter)
+        all_booking_service = all_booking_service.filter(AllBooking.day_booking == new_filter.this_date_filter)
 
     if (new_filter.date_start_filter is not None) and (new_filter.date_end_filter is not None) \
             and (new_filter.this_date_filter is None):
@@ -177,7 +177,7 @@ def find_freedom_booking(name_service):
                                      "intervals": intervals_list}
 
                     all_booking_this_ev = info_booking.filter(db.and_(AllBooking.signup_event == one_event.id,
-                                                                      AllBooking.day == one_day)).all()
+                                                                      AllBooking.day_booking == one_day)).all()
 
                     """Поиск интервало"""
                     for one_booking in all_booking_this_ev:
