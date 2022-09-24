@@ -23,3 +23,10 @@ class Student(User):
 class Customer(User):
     role = "customer"
     phone_number: str
+
+
+class DatabaseUser(BaseModel):
+    name_client: str
+    tg_id: int
+    phone_num: str
+    id: int
