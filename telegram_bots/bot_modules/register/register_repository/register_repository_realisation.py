@@ -4,7 +4,9 @@ from bot_modules.register.register_repository.register_repository_interface impo
     RegisterRepositoryInterface,
     CurrentlyChangingRegisterDataRepositoryInterface,
 )
-from bot_modules.register.data_structures import User
+from bot_modules.register.data_structures import User, DatabaseUser
+
+from adapter_tg import adapter_tg
 
 
 register_data = {}  # userId: stud/prep
@@ -74,3 +76,24 @@ class CurrentlyChangingRegisterDataRepository(
         user_id = str(user_id)
         if user_id in currently_changing_register_data:
             currently_changing_register_data.remove(user_id)
+
+
+class RegisterRepositoryInDatabase(RegisterRepositoryInterface):
+    def add_user(self, user: User):
+        register_data[str(user.user_id)] = user.copy()
+
+    def get_all_users_data(self) -> List[DatabaseUser]:
+        return adapter_tg.get_all_users()
+
+    def get_user_data(self, user_id: int) -> DatabaseUser: 
+        return adapter_tg.find_users(tg_id=user_id)
+
+    def check_is_user_in_register_data(self, user_id: int):
+        user_id = str(user_id)
+        return adapter_tg.find_users(tg_id=user_id)
+
+    def update_user_data(self, user: User):
+        adapter_tg.change_users(tg_id=user.user_id, new_name=user.fio, new_phone=user.phone_number)
+
+    def delete_user(self, user_id: int):
+        pass
