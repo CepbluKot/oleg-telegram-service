@@ -1,16 +1,16 @@
 from flask import request
-from setting_web import cross_origin, db
+from setting_web import flask_app, db, head_conf
 from pydantic import ValidationError
 from flask_restplus import Namespace, Resource, fields
 from datetime import time
-
+from setting_web import token_required
 from .validate import ValidateEvent, FilterEvent as Filter, WindowDataService
 from .queries import get_filter_work_day, find_boundaries_week, all_working_date
 from .schema import EventSchema
 from back.models.booking_models import Event, ServiceEvent, MyService
 
 
-event = Namespace('event', 'This-Event_API')
+event = Namespace('event', 'This-Event_API', authorizations=head_conf.auth_setting_swagger)
 
 
 class TimeFormat(fields.Raw):
@@ -44,10 +44,11 @@ info_event = event.model('Data about one event', {
 
 @event.route('')
 class Booking(Resource):
+    @event.doc(security='apikey')
+    @token_required
     def get(self):
         return all_working_date()
 
-    @cross_origin(origins=["*"], supports_credentials=True)
     @event.expect(info_event)
     def post(self):
         try:

@@ -1,10 +1,9 @@
-from setting_web import db, admin
-
+from setting_web import admin
 from flask_admin.contrib.sqla import ModelView
 from flask import Response
 from werkzeug.exceptions import HTTPException
 
-from back.models.booking_models import *
+from ..models.booking_models import *
 
 
 class AuthException(HTTPException):

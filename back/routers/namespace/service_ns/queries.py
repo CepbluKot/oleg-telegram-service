@@ -1,5 +1,5 @@
 from .schema import ServiceSchema
-from back.models.booking_models import MyService, ServiceStaffConnect, MyStaff
+from ....models.booking_models import MyService, ServiceStaffConnect, MyStaff
 from setting_web import db
 
 from .validate import FilterServicesStaff as Filter

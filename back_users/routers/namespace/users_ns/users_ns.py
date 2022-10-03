@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from back_users.models.all_models import Users
 from .validate import ValidateRegister, ValidateLogin
-from setting_web import db, flask_app, get_jwt, verify_jwt_in_request, create_access_token, cross_origin
+from setting_web import get_jwt, verify_jwt_in_request, create_access_token, cross_origin, flask_app, db
 
 
 users = Namespace('users', description='API for users Oleg')

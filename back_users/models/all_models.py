@@ -1,10 +1,4 @@
-from setting_web import db, config
-from datetime import timedelta, date
-from calendar import weekday
-from typing import List, Optional
-import rapidjson
-import enum
-
+from setting_web import db
 
 ROLE_EMPLOYEE = 0
 ROLE_ADMIN = 1
@@ -44,15 +38,12 @@ class Department(db.Model):
     ip_service = db.Column(db.String)
 
     def __init__(self, name, ip_serv, config_password):
-        if config_password == config['main']['password']:
-            try:
-                self.name = name
-                self.ip_service = ip_serv
-                self.save_to_db()
-            except:
-                print('Error: db connect')
-        else:
-            print('Error: authorization')
+        try:
+            self.name = name
+            self.ip_service = ip_serv
+            self.save_to_db()
+        except:
+            print('Error: db connect')
 
     def save_to_db(self):
         db.session.add(self)

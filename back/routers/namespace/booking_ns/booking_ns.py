@@ -3,7 +3,7 @@ from flask_restplus import Namespace, Resource, fields
 from datetime import time, date, datetime
 
 from .queries import get_all_booking, get_filter_booking, get_indo_calendar, find_freedom_booking, get_all_event
-from back.models.booking_models import AllBooking
+from ....models.booking_models import AllBooking
 from .validate import FilterBooking as Filter
 
 
@@ -15,8 +15,8 @@ class TimeFormat(fields.Raw):
 booking = Namespace('booking', 'This-booking_API')
 
 booking_inset = booking.model('BookingInsert', {
-    "time_start": TimeFormat(required=True, description='Time in HH:MM', default='HH:MM'),
-    "time_end": TimeFormat(required=True, description='Time in HH:MM', default='HH:MM'),
+    "time_start": TimeFormat(required=True, description='Time in HH:MM', example='13:37'),
+    "time_end": TimeFormat(required=True, description='Time in HH:MM', example='02:28'),
     "event_id": fields.Integer(description='fk event table', required=True),
     "service_id": fields.Integer(description='fk service table', required=True),
     "staff_id": fields.Integer(description='fk staff table', required=True),

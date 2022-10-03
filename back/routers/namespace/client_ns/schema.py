@@ -1,5 +1,5 @@
 from setting_web import ma
-from back.models.booking_models import CompanyUsers
+from ....models.booking_models import CompanyUsers
 
 
 class InfoUsersComSchema(ma.SQLAlchemyAutoSchema):

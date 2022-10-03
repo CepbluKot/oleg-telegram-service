@@ -1,12 +1,13 @@
 __pycache__
 .idea
 back/.idea
+back_users/.idea
 back/env
 telegram_bots/config.json
 telegram_bots/bot_venv
 back/migrations
 back/old_version
 env
-setting_web.py
 migrations
 gunicorn
+conf_back.ini

@@ -41,11 +41,13 @@ class MyService(db.Model):
     duration = db.Column(db.Time)
     max_booking = db.Column(db.Integer)
 
+
+
     def __init__(self, name_service, price=None, duration=None, max_booking=None):
         self.name_service = name_service
         self.price_service = price
-        self.duration=duration
-        self.max_booking=max_booking
+        self.duration = duration
+        self.max_booking = max_booking
 
     def __repr__(self):
         return f"Service ('{self.name_service}')"
@@ -147,6 +149,7 @@ class Event(db.Model):
     end_event = db.Column(db.Time)
     weekdays = db.Column(db.ARRAY(db.Integer), default=None)
     many_day = db.Column(db.ARRAY(db.Date), default=None)
+
 
     """weekday: 
     'Mon' -> 0
