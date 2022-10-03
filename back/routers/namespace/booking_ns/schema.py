@@ -1,5 +1,5 @@
-from .. import ma
-from . import AllBooking, Event
+from setting_web import ma
+from ....models.booking_models import AllBooking, Event
 
 from ..event_ns.schema import EventSchema
 from ..service_ns.schema import ServiceSchema

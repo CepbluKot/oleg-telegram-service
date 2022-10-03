@@ -1,9 +1,4 @@
-try:
-    from .. import db
-except ImportError:
-    from setting_web import head_conf
-    db = head_conf.db
-
+from setting_web import db
 from datetime import timedelta, date
 from calendar import weekday
 from typing import List, Optional
@@ -45,6 +40,8 @@ class MyService(db.Model):
     price_service = db.Column(db.Float)
     duration = db.Column(db.Time)
     max_booking = db.Column(db.Integer)
+
+
 
     def __init__(self, name_service, price=None, duration=None, max_booking=None):
         self.name_service = name_service
@@ -152,6 +149,7 @@ class Event(db.Model):
     end_event = db.Column(db.Time)
     weekdays = db.Column(db.ARRAY(db.Integer), default=None)
     many_day = db.Column(db.ARRAY(db.Date), default=None)
+
 
     """weekday: 
     'Mon' -> 0

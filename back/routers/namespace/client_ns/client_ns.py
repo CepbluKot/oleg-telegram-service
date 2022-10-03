@@ -2,7 +2,7 @@ from flask_restplus import Resource, Namespace, fields
 from flask import request
 from pydantic import ValidationError
 
-from . import CompanyUsers
+from ....models.booking_models import CompanyUsers
 from .validate import RegisterClient, FilterClient as Filter
 from .queries import get_filter_client, all_client
 

@@ -1,5 +1,5 @@
-from . import AllBooking, Event, CompanyUsers, MyService
-from .. import db
+from ....models.booking_models import AllBooking, Event, CompanyUsers, MyService, ServiceEvent
+from setting_web import db
 from ..event_ns.queries import find_boundaries_week
 from operator import ge, le
 import orjson
@@ -43,6 +43,7 @@ def find_booking_this_day(dat: date):
     api_all_booking_schema = EventSchema(many=True)
 
     return api_all_booking_schema.dump(all_booking_service)
+
 
 def get_filter_booking(new_filter: Filter):
     all_booking_service = _base_query()
@@ -105,6 +106,44 @@ def get_indo_calendar(cor_date: Filter):
     return answer_calendar
 
 
+def find_intervals(intervals_list, all_booking_this_ev):
+    for one_booking in all_booking_this_ev:
+        for iter_interval in range(len(intervals_list)):
+            if one_booking.time_start >= intervals_list[iter_interval][0] and one_booking.time_end <= \
+                    intervals_list[iter_interval][1]:
+                left_intervals = [intervals_list[iter_interval][0], one_booking.time_start]
+                right_intervals = [one_booking.time_end, intervals_list[iter_interval][1]]
+
+                intervals_list.pop(iter_interval)
+
+                if left_intervals[0] != left_intervals[1]:
+                    intervals_list.append(left_intervals)
+                if right_intervals[0] != right_intervals[1]:
+                    intervals_list.append(right_intervals)
+                break
+
+    return intervals_list
+
+
+def fraction_window(intervals_list, info_service):
+    if info_service.duration is not None and info_service.duration != time(hour=0, minute=0, second=0):
+        drop_interval_list = []
+        for one_window in intervals_list:
+            delta_duration = timedelta(hours=info_service.duration.hour,
+                                       minutes=info_service.duration.minute)
+
+            new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
+
+            while one_window[1] > new_window.time():
+                drop_interval_list.append([(one_window[0]),
+                                           new_window.time()])
+                one_window[0] = new_window.time()
+                new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
+
+        intervals_list = drop_interval_list
+
+    return intervals_list
+
 def find_freedom_booking(name_service):
     con_ser_event = ServiceEvent.event_search_by_service(name_service)
     info_service = MyService.find_by_name(name_service)
@@ -132,37 +171,8 @@ def find_freedom_booking(name_service):
 
                 all_booking_this_ev = info_booking.filter(AllBooking.signup_event == one_event.id).all()
 
-                """Поиск интервалов"""
-                for one_booking in all_booking_this_ev:
-                    for iter_interval in range(len(intervals_list)):
-                        if one_booking.time_start >= intervals_list[iter_interval][0] and one_booking.time_end <= \
-                                intervals_list[iter_interval][1]:
-                            left_intervals = [intervals_list[iter_interval][0], one_booking.time_start]
-                            right_intervals = [one_booking.time_end, intervals_list[iter_interval][1]]
-
-                            intervals_list.pop(iter_interval)
-
-                            if left_intervals[0] != left_intervals[1]:
-                                intervals_list.append(left_intervals)
-                            if right_intervals[0] != right_intervals[1]:
-                                intervals_list.append(right_intervals)
-                            break
-
-                if info_service.duration is not None and info_service.duration != time(hour=0, minute=0, second=0):
-                    drop_interval_list = []
-                    for one_window in intervals_list:
-                        delta_duration = timedelta(hours=info_service.duration.hour,
-                                                   minutes=info_service.duration.minute)
-
-                        new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
-
-                        while one_window[1] > new_window.time():
-                            drop_interval_list.append([(one_window[0]),
-                                                       new_window.time()])
-                            one_window[0] = new_window.time()
-                            new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
-
-                    intervals_list = drop_interval_list
+                intervals_list = find_intervals(intervals_list, all_booking_this_ev)
+                intervals_list = fraction_window(intervals_list, info_service)
 
                 interval_time["intervals"] = intervals_list
                 answer.append(interval_time)
@@ -192,25 +202,10 @@ def find_freedom_booking(name_service):
                                 intervals_list.extend([left_intervals, right_intervals])
                                 break
 
-                    if info_service.duration is not None and info_service.duration != time(hour=0, minute=0, second=0):
-                        drop_interval_list = []
-                        for one_window in intervals_list:
-                            delta_duration = timedelta(hours=info_service.duration.hour,
-                                                       minutes=info_service.duration.minute)
-
-                            new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
-
-                            while one_window[1] > new_window.time():
-                                drop_interval_list.append([(one_window[0]),
-                                                           new_window.time()])
-                                one_window[0] = new_window.time()
-                                new_window = datetime.combine(date.today(), one_window[0]) + delta_duration
-
-                        intervals_list = drop_interval_list
+                    intervals_list = fraction_window(intervals_list, info_service)
 
                     interval_time["intervals"] = intervals_list
                     answer.append(interval_time)
-
 
         new_answer = []
         for one_window in answer:

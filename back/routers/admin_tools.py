@@ -1,4 +1,4 @@
-from .. import flask_app, db
+from setting_web import admin
 from flask_admin.contrib.sqla import ModelView
 from flask import Response
 from werkzeug.exceptions import HTTPException

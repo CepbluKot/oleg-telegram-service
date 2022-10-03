@@ -1,4 +1,4 @@
-from . import CompanyUsers, AllBooking
+from ....models.booking_models import CompanyUsers, AllBooking
 
 from .schema import InfoUsersComSchema
 from .validate import FilterClient as Filter

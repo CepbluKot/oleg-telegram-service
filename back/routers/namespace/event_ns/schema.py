@@ -1,5 +1,5 @@
-from .. import ma
-from . import ServiceEvent, Event
+from setting_web import ma
+from ....models.booking_models import ServiceEvent, Event
 from ..service_ns.schema import ServiceSchema
 
 

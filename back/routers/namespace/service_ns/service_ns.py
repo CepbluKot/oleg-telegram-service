@@ -3,7 +3,7 @@ from flask_restplus import Namespace, Resource, fields
 from pydantic import ValidationError
 from datetime import time
 
-from . import MyService, ServiceStaffConnect
+from ....models.booking_models import MyService, ServiceStaffConnect
 from .queries import all_service, get_filter_services
 from .validate import ValidateService as ValidateService
 from .validate import FilterServicesStaff as Filter

@@ -1,4 +1,4 @@
-from setting_web import flask_app, db
+from setting_web import flask_app, db, admin
 
 from flask_admin.contrib.sqla import ModelView
 from flask import Response
