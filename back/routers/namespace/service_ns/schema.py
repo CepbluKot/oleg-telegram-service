@@ -8,7 +8,7 @@ class ServiceSchema(ma.SQLAlchemyAutoSchema):
         model = MyService
         load_instance = True
         include_relationships = True
-
+        exclude = ('service_ab', 'ssc_service_se', 'service_se', )
 
 class ServiceStaffSchema(ma.SQLAlchemyAutoSchema):
     """Дата класс сервиса"""

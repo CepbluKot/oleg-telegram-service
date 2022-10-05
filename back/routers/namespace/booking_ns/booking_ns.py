@@ -1,11 +1,13 @@
+import json
 from flask import request, jsonify
 from flask_restplus import Namespace, Resource, fields
 from datetime import time, date, datetime
 
-from .queries import get_all_booking, get_filter_booking, get_indo_calendar, find_freedom_booking, get_all_event
+from .queries import get_all_booking,  get_indo_calendar, get_all_event
 from ....models.booking_models import AllBooking
 from .validate import FilterBooking as Filter
 
+from setting_web import cross_origin
 
 class TimeFormat(fields.Raw):
     def format(self, value):
@@ -47,18 +49,19 @@ booking_filter = booking.model('BookingFilter', {
 })
 
 
-@booking.route('/filter')
-class FilterBooking(Resource):
-
-    @booking.expect(booking_filter)
-    def post(self):
-        add_filter = Filter(**request.get_json())
-        res_data = get_filter_booking(add_filter)
+# @booking.route('/filter')
+# class FilterBooking(Resource):
+#
+#     @booking.expect(booking_filter)
+#     def post(self):
+#         add_filter = Filter(**request.get_json())
+#         res_data = get_filter_booking(add_filter)
 
 
 @booking.route('/calendar/<cal_date>')
 @booking.doc(params={'cal_date': 'date format 2022-05-27'})
 class CalendarBooking(Resource):
+    @cross_origin(origins=["*"], supports_credentials=True)
     def get(self, cal_date: str):
         try:
             cal_date = datetime.strptime(cal_date, '%Y-%m-%d').date()
@@ -67,7 +70,7 @@ class CalendarBooking(Resource):
 
         calendar_date = Filter()
         calendar_date.this_date_filter = cal_date
-        return get_indo_calendar(calendar_date), 200
+        return jsonify(get_indo_calendar(calendar_date)), 200
 
 
 freedom_booking = booking.model('FreedomBooking', {
@@ -75,9 +78,9 @@ freedom_booking = booking.model('FreedomBooking', {
 })
 
 
-@booking.route('/search')
-class BookingSearch(Resource):
-    @booking.expect(freedom_booking)
-    def post(self):
-        name_service = request.get_json()['name_service']
-        return find_freedom_booking(name_service)
+# @booking.route('/search')
+# class BookingSearch(Resource):
+#     @booking.expect(freedom_booking)
+#     def post(self):
+#         name_service = request.get_json()['name_service']
+#         return find_freedom_booking(name_service)

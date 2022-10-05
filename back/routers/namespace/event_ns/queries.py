@@ -4,7 +4,7 @@ from ....models.booking_models import *
 from calendar import Calendar
 from datetime import date, datetime
 
-from .schema import ServiceEvent, EventSchema
+from .schema import ServiceEvent, EventSettingSchema
 from .validate import FilterEvent as Filter
 
 now_date = datetime.now()
@@ -12,21 +12,21 @@ cl = Calendar()
 
 
 def _base_query():
-    query = Event.query.filter(Event.day_end >= date(year=now_date.year, month=now_date.month, day=now_date.day))
+    query = EventSetting.query.filter(EventSetting.day_end >= date(year=now_date.year, month=now_date.month, day=now_date.day))
     return query
 
 
 def _base_query_se():
-    query = db.session.query(ServiceEvent.quantity, MyService.name_service, Event.name_event, Event.day)
+    query = db.session.query(ServiceEvent.quantity, MyService.name_service, EventSetting.name_event, EventSetting.day_start_g)
     query = query.join(MyService)
-    query = query.join(Event)
+    query = query.join(EventSetting)
     return query
 
 
 def all_working_date():
     """Все записи"""
     all_date = _base_query()
-    api_all_work_date = EventSchema(many=True)
+    api_all_work_date = EventSettingSchema(many=True)
 
     test = api_all_work_date.dump(all_date)
     print(test)
@@ -38,24 +38,24 @@ def get_filter_work_day(filter_event: Filter):
     this_day = _base_query()
 
     if filter_event.id is not None and len(filter_event.id) > 0:
-        this_day = this_day.filter(Event.name_event.in_(filter_event.id))
+        this_day = this_day.filter(EventSetting.name_event.in_(filter_event.id))
 
-    if filter_event.name is not None and len(filter_event.name) > 0:
-        this_day = this_day.filter(Event.name_event.in_(filter_event.name))
+    # if filter_event.name is not None and len(filter_event.name) > 0:
+    #     this_day = this_day.filter(Event.name_event.in_(filter_event.name))
+    #
+    # if filter_event.day_start:
+    #     this_day = this_day.filter(Event.day_start >= filter_event.day_start)
+    #
+    # if filter_event.day_end:
+    #     this_day = this_day.filter(Event.day_end <= filter_event.day_end)
+    #
+    # if filter_event.start_time:
+    #     this_day = this_day.filter(Event.start_event >= filter_event.start_time)
+    #
+    # if filter_event.end_time:
+    #     this_day = this_day.filter(Event.end_event >= filter_event.end_time)
 
-    if filter_event.day_start:
-        this_day = this_day.filter(Event.day_start >= filter_event.day_start)
-
-    if filter_event.day_end:
-        this_day = this_day.filter(Event.day_end <= filter_event.day_end)
-
-    if filter_event.start_time:
-        this_day = this_day.filter(Event.start_event >= filter_event.start_time)
-
-    if filter_event.end_time:
-        this_day = this_day.filter(Event.end_event >= filter_event.end_time)
-
-    api_all_work_date = EventSchema(many=True)
+    api_all_work_date = EventSettingSchema(many=True)
     return api_all_work_date.dump(this_day)
 
 
@@ -79,7 +79,7 @@ def find_boundaries_week(day):
 
 def check_exit_event(this_ck_date):
     ck_all_date = _base_query()
-    status = ck_all_date.filter_by(Event.day == this_ck_date).first() is not None
+    status = ck_all_date.filter_by(EventSetting.day_start_g == this_ck_date).first() is not None
 
     return status
 

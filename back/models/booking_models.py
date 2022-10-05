@@ -1,5 +1,6 @@
 from setting_web import db
-from datetime import timedelta, date
+from sqlalchemy.exc import PendingRollbackError, IntegrityError
+from datetime import timedelta, date, time
 from calendar import weekday
 from typing import List, Optional
 import rapidjson
@@ -134,20 +135,24 @@ class CompanyUsers(db.Model):
         db.session.commit()
 
 
-class Event(db.Model):
-    __tablename__ = 'event_company'
+class EventSetting(db.Model):
+    __tablename__ = 'event_setting'
 
     __table_args__ = (
-        db.UniqueConstraint("name_event", "day_start", "day_end", "start_event", "end_event"),
+        db.UniqueConstraint("name_event", "day_start_g", "day_end_g", "event_time_start", "event_time_end"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_event = db.Column(db.String, default="Work_Day")
-    day_start = db.Column(db.Date, nullable=False)
-    day_end = db.Column(db.Date, nullable=False)
-    start_event = db.Column(db.Time)
-    end_event = db.Column(db.Time)
-    weekdays = db.Column(db.ARRAY(db.Integer), default=None)
+    day_start_g = db.Column(db.Date, nullable=False)
+    day_end_g = db.Column(db.Date, nullable=False)
+    event_time_start = db.Column(db.Time, nullable=False)
+    event_time_end = db.Column(db.Time, nullable=False)
+
+    status_repid_day = db.Column(db.Boolean, default=False)
+    day_end_rapid = db.Column(db.Date, default=date(year=1917, month=3, day=2))
+
+    weekdays = db.Column(db.ARRAY(db.Integer), default=[])
     many_day = db.Column(db.ARRAY(db.Date), default=None)
 
 
@@ -158,54 +163,83 @@ class Event(db.Model):
     'Sun' -> 6
     """
 
-    def __init__(self, name, day_start, day_end, start_event, end_event, weekdays_list=None):
-        self.name_event = name
-        self.day_start = day_start
-        self.day_end = day_end
-        self.start_event = start_event
-        self.end_event = end_event
-        self.weekdays = weekdays_list
-
-        print(weekdays_list, day_end - day_start)
-        if weekdays_list is not None or day_end - day_start > timedelta(days=0):
-            print('EEEEEEEEEEEEEE')
-            days = []
-            for single_date in self.daterange(day_start, day_end):
-                    if weekdays_list is not None and len(weekdays_list) != 0:
-                        if weekday(single_date.year, single_date.month, single_date.day) not in weekdays_list:
-                            continue
-                    print('bbbb')
-                    days.append(date(single_date.year, single_date.month, single_date.day))
-
-            self.many_day = days
-
+    def __init__(self, **kwargs):
         try:
-            self.save_to_db()
-        except:
-            print("ERROR ADD EVENT")
+            self.name_event = kwargs['name_event']
+            self.day_start_g = kwargs['day_start_g']
+            self.day_end_g = kwargs['day_end_g']
+            self.event_time_start = kwargs['event_time_start']
+            self.event_time_end = kwargs['event_time_end']
+
+            try:
+                self.status_repid_day = kwargs['status_repid_day']
+            except KeyError:
+                print({'message': 'dont get status rapid day'})
+
+            try:
+                self.day_end_rapid = kwargs['day_end_rapid']
+            except KeyError:
+                print({'message': 'dont get day_end_rapid'})
+
+            try:
+                self.weekdays = kwargs['weekdays']
+            except KeyError:
+                print({'message': 'dont get weekdays'})
+
+            try:
+                self.save_to_db()
+                self.create_days_event()
+            except PendingRollbackError:
+                print({'message': 'dont pulling event_setting in database'})
+
+        except KeyError:
+            print({'message': 'dont create event'})
 
     def __repr__(self):
-        return f"Event ('{self.name_event, self.day_start}')"
+        return f"EventSetting ('{self.name_event, self.day_start_g}')"
+
+    def add_db_event(self, day_start, day_end, time_start, time_end, flag_transition=False):
+        if day_end - day_start == timedelta(days=1):
+            EventDay(day_start=day_start, day_end=day_start,
+                     time_start=time_start, time_end=time(hour=23, minute=59), setting_id=self.id, flag_transition=True)
+            EventDay(day_start=day_end, day_end=day_end,
+                     time_start=time(hour=0), time_end=time_end, setting_id=self.id, flag_transition=True)
+        else:
+            EventDay(day_start=day_start, day_end=day_end,
+                     time_start=time_start, time_end=time_end, setting_id=self.id)
+
+    def create_days_event(self):
+        if self.status_repid_day:
+            for single_date in self.daterange(self.day_start_g, self.day_end_rapid):
+                if self.weekdays is not None and len(self.weekdays) != 0:
+                    if weekday(single_date.year, single_date.month, single_date.day) not in self.weekdays:
+                        continue
+                if self.day_end_g > self.day_start_g:
+                    self.add_db_event(single_date, single_date + timedelta(days=1), self.event_time_start, self.event_time_end, flag_transition=True)
+                elif self.day_start_g == self.day_end_g:
+                    self.add_db_event(single_date, single_date, self.event_time_start, self.event_time_end)
+        else:
+            self.add_db_event(self.day_start_g, self.day_end_g, self.event_time_start, self.event_time_end)
 
     def daterange(self, start_date, end_date):
         for n in range(int((end_date - start_date).days)):
             yield start_date + timedelta(n)
 
     @classmethod
-    def find_by_id(cls, id_) -> 'Event':
+    def find_by_id(cls, id_) -> 'EventSetting':
         return cls.query.filter(cls.id == id_).first()
 
     @classmethod
-    def find_by_name_day(cls, id_) -> 'Event':
+    def find_by_name_day(cls, id_) -> 'EventSetting':
         return cls.query.filter(cls.id == id_).first()
 
     @classmethod
-    def find_by_all_parameters(cls, name_, day_start_, day_end_, time_start_, time_end_) -> 'Event':
+    def find_by_all_parameters(cls, name_, day_start_, day_end_, time_start_, time_end_) -> 'EventSetting':
         return cls.query.filter(db.and_(cls.name_event == name_,
-                                        cls.day_start == day_start_,
-                                        cls.day_end == day_end_,
-                                        cls.start_event == time_start_,
-                                        cls.end_event == time_end_)).first()
+                                        cls.day_start_g == day_start_,
+                                        cls.day_end_g == day_end_,
+                                        cls.event_time_start == time_start_,
+                                        cls.event_time_end == time_end_)).first()
 
     def save_to_db(self):
         db.session.add(self)
@@ -219,6 +253,43 @@ class Event(db.Model):
         db.session.commit()
 
 
+class EventDay(db.Model):
+    __tablename__ = 'event_day_company'
+
+    # __table_args__ = (
+    #     db.UniqueConstraint("event_day_start", "event_day_start", "event_day_end", "event_setting_id"),
+    # )
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    event_day_start = db.Column(db.Date, nullable=False)
+    event_day_end = db.Column(db.Date, nullable=False)
+
+    event_time_start = db.Column(db.Time, nullable=False)
+    event_time_end = db.Column(db.Time, nullable=False)
+
+    flag_event_transition = db.Column(db.Boolean, default=False)
+
+    event_setting_id = db.Column(db.Integer, db.ForeignKey('event_setting.id'))
+    connect_event_setting = db.relationship('EventSetting', backref=db.backref('event_day_se', cascade="all, delete-orphan"), lazy='joined')
+
+    def __init__(self, day_start, day_end, time_start, time_end, setting_id, flag_transition=False):
+        self.event_day_start = day_start
+        self.event_day_end = day_end
+        self.event_time_start = time_start
+        self.event_time_end = time_end
+        self.event_setting_id = setting_id
+        self.flag_event_transition = flag_transition
+        self.save_to_db()
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update_from_db(self):
+        db.session.commit()
+
+
 class AllBooking(db.Model):
     __tablename__ = 'all_booking'
 
@@ -227,8 +298,8 @@ class AllBooking(db.Model):
     time_end = db.Column(db.Time)
     day_booking = db.Column(db.Date)
 
-    signup_event = db.Column(db.Integer, db.ForeignKey('event_company.id')) #день_записи
-    connect_event = db.relationship('Event', backref='event_booking')
+    signup_event = db.Column(db.Integer, db.ForeignKey('event_day_company.id')) #день_записи
+    connect_event = db.relationship('EventDay', backref='event_booking')
 
     signup_user = db.Column(db.Integer, db.ForeignKey('users_this_company.id')) #человек который записался
     connect_user = db.relationship('CompanyUsers')
@@ -279,8 +350,8 @@ class ServiceEvent(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    event_id = db.Column(db.Integer, db.ForeignKey('event_company.id'), nullable=False)
-    event_connect = db.relationship('Event', backref=db.backref('event_se', cascade="all, delete-orphan"), lazy='joined')
+    event_id = db.Column(db.Integer, db.ForeignKey('event_setting.id'), nullable=False)
+    event_connect = db.relationship('EventSetting', backref=db.backref('event_se', cascade="all, delete-orphan"), lazy='joined')
 
     service_id = db.Column(db.Integer, db.ForeignKey('myservice.id'), nullable=False)
     service_connect = db.relationship('MyService', backref=db.backref('service_se', cascade="all, delete-orphan"), passive_deletes=False)
@@ -292,7 +363,10 @@ class ServiceEvent(db.Model):
         self.service_id = service_id
         self.count_service_this_event = rapidjson.dumps(windows_service)
 
-        self.save_to_db()
+        try:
+            self.save_to_db()
+        except PendingRollbackError:
+            print({"massage": "error connect"})
 
     @classmethod
     def find_by_event_and_service(cls, event_id, service_name) -> List['ServiceEvent']:
@@ -311,7 +385,7 @@ class ServiceEvent(db.Model):
         try:
             db.session.add(self)
             db.session.commit()
-        except:
+        except IntegrityError:
             print("DONT ADD CONNECT SERVICE AND EVENT")
 
     def save_many_to_db(self, objects: list):

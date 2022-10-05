@@ -1,11 +1,11 @@
-from ....models.booking_models import AllBooking, Event, CompanyUsers, MyService, ServiceEvent
+from ....models.booking_models import AllBooking, EventDay, CompanyUsers, MyService, ServiceEvent
 from setting_web import db
 from ..event_ns.queries import find_boundaries_week
 from operator import ge, le
 import orjson
 
 from .validate import FilterBooking as Filter, FreedomBooking as FrBooking, AnswerCalendar
-from .schema import InfoBookingSchema, EventSchema
+from .schema import InfoBookingSchema, EventDaySchema
 
 import json
 from datetime import datetime, timedelta, time, date
@@ -32,59 +32,55 @@ def get_all_event():
 
 
 def find_booking_this_day(dat: date):
-    all_booking_service = Event.query.join(AllBooking).filter(db.and_(AllBooking.day_booking == dat))
+    all_booking_service = EventDay.query
 
-    between_date = Event.day_start.between(dat, dat)
-    single_date = all_booking_service.filter(between_date)
-    many_date = all_booking_service.filter(Event.many_day is not None)
-    many_date = many_date.filter(Event.many_day.any(dat, operator=le))
+    between_date_start = EventDay.day_start.between(dat, dat)
+    all_booking_service = all_booking_service.filter(between_date_start)
 
-    all_booking_service = single_date.union(many_date)
     api_all_booking_schema = EventSchema(many=True)
-
     return api_all_booking_schema.dump(all_booking_service)
 
 
-def get_filter_booking(new_filter: Filter):
-    all_booking_service = _base_query()
-
-    """Filter about people"""
-    if new_filter.clients_tg_id_filter is not None:
-        if new_filter.clients_tg_id_filter.tg_id is not None:
-            all_booking_service = all_booking_service.filter(CompanyUsers.tg_id.in_(new_filter.clients_tg_id_filter.tg_id))
-
-        if new_filter.clients_tg_id_filter.phone_num is not None:
-            all_booking_service = all_booking_service.filter(CompanyUsers.phone_num.in_(new_filter.clients_tg_id_filter.phone_num))
-
-        if new_filter.clients_tg_id_filter.name is not None:
-            all_booking_service = all_booking_service.filter(CompanyUsers.name_client.in_(new_filter.clients_tg_id_filter.name))
-
-    """Filter about service"""
-    if new_filter.service_filter is not None:
-        all_booking_service = all_booking_service.filter(MyService.name_service == new_filter.service_filter)
-
-    """Filter about Date and Time"""
-    if new_filter.this_date_filter is not None:
-        all_booking_service = all_booking_service.filter(AllBooking.day_booking == new_filter.this_date_filter)
-
-    if (new_filter.date_start_filter is not None) and (new_filter.date_end_filter is not None) \
-            and (new_filter.this_date_filter is None):
-        between_date = Event.day_start.between(new_filter.date_start_filter, new_filter.date_end_filter)
-        single_date = all_booking_service.filter(between_date)
-
-        many_date = all_booking_service.filter(Event.many_day is not None)
-        many_date = many_date.filter(Event.many_day.any(new_filter.date_start_filter, operator=le))
-
-        all_booking_service = single_date.union(many_date)
-
-    if new_filter.time_start_filter is not None and new_filter.time_end_filter is not None:
-        between_time = AllBooking.time_start.between(new_filter.time_start_filter, new_filter.time_end_filter)
-        all_booking_service = all_booking_service.filter(between_time)
-
-    all_booking_service = all_booking_service.order_by(db.desc(AllBooking.time_start))
-    api_all_booking_schema = InfoBookingSchema(many=True)
-
-    return api_all_booking_schema.dump(all_booking_service)
+# def get_filter_booking(new_filter: Filter):
+#     all_booking_service = _base_query()
+#
+#     """Filter about people"""
+#     if new_filter.clients_tg_id_filter is not None:
+#         if new_filter.clients_tg_id_filter.tg_id is not None:
+#             all_booking_service = all_booking_service.filter(CompanyUsers.tg_id.in_(new_filter.clients_tg_id_filter.tg_id))
+#
+#         if new_filter.clients_tg_id_filter.phone_num is not None:
+#             all_booking_service = all_booking_service.filter(CompanyUsers.phone_num.in_(new_filter.clients_tg_id_filter.phone_num))
+#
+#         if new_filter.clients_tg_id_filter.name is not None:
+#             all_booking_service = all_booking_service.filter(CompanyUsers.name_client.in_(new_filter.clients_tg_id_filter.name))
+#
+#     """Filter about service"""
+#     if new_filter.service_filter is not None:
+#         all_booking_service = all_booking_service.filter(MyService.name_service == new_filter.service_filter)
+#
+#     """Filter about Date and Time"""
+#     if new_filter.this_date_filter is not None:
+#         all_booking_service = all_booking_service.filter(AllBooking.day_booking == new_filter.this_date_filter)
+#
+#     if (new_filter.date_start_filter is not None) and (new_filter.date_end_filter is not None) \
+#             and (new_filter.this_date_filter is None):
+#         between_date = Event.day_start.between(new_filter.date_start_filter, new_filter.date_end_filter)
+#         single_date = all_booking_service.filter(between_date)
+#
+#         many_date = all_booking_service.filter(Event.many_day is not None)
+#         many_date = many_date.filter(Event.many_day.any(new_filter.date_start_filter, operator=le))
+#
+#         all_booking_service = single_date.union(many_date)
+#
+#     if new_filter.time_start_filter is not None and new_filter.time_end_filter is not None:
+#         between_time = AllBooking.time_start.between(new_filter.time_start_filter, new_filter.time_end_filter)
+#         all_booking_service = all_booking_service.filter(between_time)
+#
+#     all_booking_service = all_booking_service.order_by(db.desc(AllBooking.time_start))
+#     api_all_booking_schema = InfoBookingSchema(many=True)
+#
+#     return api_all_booking_schema.dump(all_booking_service)
 
 
 def get_indo_calendar(cor_date: Filter):
@@ -156,8 +152,8 @@ def find_freedom_booking(name_service):
             all_event_id.append(one_q.event_id)
 
         now_date = datetime.now()
-        info_events = Event.query.filter(db.and_(Event.id.in_(all_event_id),
-                                           Event.day_end >= date(year=now_date.year, month=now_date.month, day=now_date.day))).all()
+        info_events = EventDay.query.filter(db.and_(EventDay.id.in_(all_event_id),
+                                           EventDay.day_end >= date(year=now_date.year, month=now_date.month, day=now_date.day))).all()
 
         info_booking = AllBooking.find_booking_by_event_id(all_event_id)
 

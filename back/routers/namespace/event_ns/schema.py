@@ -1,5 +1,5 @@
 from setting_web import ma
-from ....models.booking_models import ServiceEvent, Event
+from ....models.booking_models import ServiceEvent, EventSetting
 from ..service_ns.schema import ServiceSchema
 
 
@@ -13,10 +13,10 @@ class ServiceEventSchema(ma.SQLAlchemyAutoSchema):
     service_connect = ma.Nested(ServiceSchema(exclude=('service_se', 'duration', 'service_ab', 'ssc_service_se')))
 
 
-class EventSchema(ma.SQLAlchemyAutoSchema):
+class EventSettingSchema(ma.SQLAlchemyAutoSchema):
     """Дата класс события"""
     class Meta:
-        model = Event
+        model = EventSetting
         load_instance = True
         include_relationships = True
 

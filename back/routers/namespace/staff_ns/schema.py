@@ -8,3 +8,4 @@ class StaffSchema(ma.SQLAlchemyAutoSchema):
         model = MyStaff
         load_instance = True
         include_relationships = True
+        exclude = ('ssc_staff_se',)

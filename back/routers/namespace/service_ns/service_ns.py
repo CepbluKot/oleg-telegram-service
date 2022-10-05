@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, jsonify
 from flask_restplus import Namespace, Resource, fields
 from pydantic import ValidationError
 from datetime import time
@@ -8,6 +8,9 @@ from .queries import all_service, get_filter_services
 from .validate import ValidateService as ValidateService
 from .validate import FilterServicesStaff as Filter
 from .validate import AllConnectServiceStaff as ConnectStaffService
+
+#monolit
+from setting_web import cross_origin
 
 
 class TimeFormat(fields.Raw):
@@ -19,14 +22,18 @@ service = Namespace('service')
 
 
 add_service = service.model('service model', {
-     "name_service": fields.String(description='new_service', required=True),
-     "price": fields.Float(),
-    "duration": TimeFormat(),
-    "max_booking": fields.Integer()
+     "name_service": fields.String(description='new_service', required=True, example='New Service'),
+     "price": fields.Float(example=133.7),
+    "duration": TimeFormat(example="HH:MM:SS"),
+    "max_booking": fields.Integer(example=1337)
 })
 
 list_add_service = service.model('list adder model', {
     "all_adder": fields.List(fields.Nested(add_service, description='all adder service'))
+})
+
+answer_response = service.model('ANSWER EXAMPLE ERROR', {
+    "message": fields.String()
 })
 
 
@@ -36,6 +43,9 @@ class AllService(Resource):
         return all_service()
 
     @service.expect(list_add_service)
+    @service.response(400, 'Bad Request', model=answer_response)
+    @service.response(200, 'Success', model=answer_response)
+    @cross_origin(origins=["*"], supports_credentials=True)
     def post(self):
         add_services = request.get_json()['all_adder']
 
@@ -45,16 +55,16 @@ class AllService(Resource):
                     ValidateService(**one_service)
                 except ValidationError as e:
                     print(e)
-                    return {'message': e.json()}, 404
+                    return jsonify({'message': e.json()}), 400
                 except TypeError:
-                    return {'message': "Incorrect data entry"}, 404
+                    return jsonify({'message': "Incorrect data entry"}), 400
 
                 new_service = MyService(**one_service)
                 new_service.save_to_db()
         except IndexError:
-            return {'message': 'DONT ADD NEW SERVICE'}, 404
+            return jsonify({'message': 'dont add new service'}), 400
 
-        return all_service(), 200
+        return jsonify({'message': 'successful addition'}), 200
 
 
 @service.route('/string:<service_name>')

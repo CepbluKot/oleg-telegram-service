@@ -36,7 +36,8 @@ class EventView(ModelView):
 
 
 admin.add_view(ModelView(DefaultSetting, db.session))
-admin.add_view(EventView(Event, db.session))
+admin.add_view(EventView(EventSetting, db.session))
+admin.add_view(EventView(EventDay, db.session))
 admin.add_view(ModelView(CompanyUsers, db.session))
 admin.add_view(ModelView(MyService, db.session))
 admin.add_view(ModelView(MyStaff, db.session))
