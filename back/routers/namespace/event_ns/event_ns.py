@@ -12,10 +12,12 @@ from .schema import EventSettingSchema
 from ....models.booking_models import EventSetting, ServiceEvent, MyService, EventDay
 
 
-event = Namespace('event', 'This-Event_API', authorizations=head_conf.auth_setting_swagger)
+event = Namespace('event', 'This-Event_API', validate=True, authorizations=head_conf.auth_setting_swagger)
 
 
 class TimeFormat(fields.Raw):
+    __schema_type__ = "string"
+    __schema_format__ = "time"
     def format(self, value):
         return time.strftime(value, "%H:%M")
 
@@ -50,6 +52,7 @@ update_info_event = event.model("Event update model", {
     "name_field_change_date": fields.List(fields.String(), example=["day_start"]),
     "id_event": fields.Integer(example=1),
     "data_service_update": fields.Nested(info_event)
+
 })
 
 
@@ -109,26 +112,6 @@ class EventApi(Resource):
         else:
             return {"message": "DONT ADD EVENT"}, 404
 
-    @event.expect(update_info_event)
-    def put(self):
-        try:
-            new_event = UpdateEvent(**request.get_json())
-        except ValidationError as e:
-            return {"message": e.json()}, 401
-
-        events_p = EventSetting.find_by_id(new_event.id_event)
-        events_day_p = EventDay.find_by_event_setting_id(new_event.id_event)
-
-        if events_p:
-            for one_parameter in new_event.name_field_change_date:
-                try:
-                    if one_parameter == 'day_start':
-                        pass
-                except KeyError:
-                    return {"message":  "event not found parameter"}, 401
-        else:
-            return {"message":  "event not found"}, 401
-
     @event.doc(params={'event_set_id': 'id'})
     def delete(self):
         event_url_parse = reqparse.RequestParser()
@@ -147,3 +130,14 @@ class EventApi(Resource):
         else:
             return {"message": "not correct input data"}, 401
 
+
+@event.route('/update/')
+class EventApiUpdate(Resource):
+    @event.doc(params={'event_set_id': {'description': 'id', 'type': 'int'}})
+    @event.doc(params={'new_ev': {'description': 'status create new event', 'type': 'str', 'example': 'y or n'}})
+    def put(self):
+        event_url_parse = reqparse.RequestParser()
+        event_url_parse.add_argument('event_set_id', type=int)
+        event_url_parse.add_argument('new_ev', type=str)
+
+        return event_url_parse.parse_args()
