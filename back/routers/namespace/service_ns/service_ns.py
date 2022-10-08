@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from flask_restplus import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields
 from pydantic import ValidationError
 from datetime import time
 
@@ -124,7 +124,6 @@ class FilterServices(Resource):
         return res_data
 
 
-
 service_staff = service.model('AddServiceStaffConnect', {
      "name_service": fields.String(description='filter services', required=True),
      "name_staff": fields.String(description='filter staff', required=True)
@@ -149,7 +148,6 @@ class StaffServiceConnect(Resource):
             all_service_name.append(one_connect.name_service)
 
         return get_filter_services(Filter(name_services=all_service_name))
-
 
     @service.expect(list_ser_sf)
     def delete(self):

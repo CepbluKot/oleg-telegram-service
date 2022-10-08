@@ -1,5 +1,5 @@
 from flask import request
-from flask_restplus import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields
 from pydantic import ValidationError
 
 from ....models.booking_models import MyStaff

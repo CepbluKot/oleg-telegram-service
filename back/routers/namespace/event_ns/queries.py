@@ -12,7 +12,7 @@ cl = Calendar()
 
 
 def _base_query():
-    query = EventSetting.query.filter(EventSetting.day_end >= date(year=now_date.year, month=now_date.month, day=now_date.day))
+    query = EventSetting.query
     return query
 
 
@@ -28,13 +28,11 @@ def all_working_date():
     all_date = _base_query()
     api_all_work_date = EventSettingSchema(many=True)
 
-    test = api_all_work_date.dump(all_date)
-    print(test)
-    return test
+    return api_all_work_date.dump(all_date)
 
 
 def get_filter_work_day(filter_event: Filter):
-
+    """Фильтры на каждое поле события"""
     this_day = _base_query()
 
     if filter_event.id is not None and len(filter_event.id) > 0:
@@ -60,6 +58,7 @@ def get_filter_work_day(filter_event: Filter):
 
 
 def find_boundaries_week(day):
+    """Поиск начала и конца недели"""
     mycal = cl.monthdatescalendar(day.year, day.month)
     start_end_week = [] #beginning and end of the week
     all_week = [] #the whole week
@@ -78,6 +77,7 @@ def find_boundaries_week(day):
 
 
 def check_exit_event(this_ck_date):
+    """Проверка на существования услуги в эту дату"""
     ck_all_date = _base_query()
     status = ck_all_date.filter_by(EventSetting.day_start_g == this_ck_date).first() is not None
 

@@ -1,7 +1,7 @@
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import request, jsonify
-from flask_restplus import Resource, Namespace, fields
+from flask_restx import Resource, Namespace, fields
 from pydantic import ValidationError
 
 from back_users.models.all_models import Users

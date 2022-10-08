@@ -38,11 +38,9 @@ class MyService(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name_service = db.Column(db.String, unique=True)
-    price_service = db.Column(db.Float)
-    duration = db.Column(db.Time)
-    max_booking = db.Column(db.Integer)
-
-
+    price_service = db.Column(db.Float, default=0, nullable=False)
+    duration = db.Column(db.Time, default=time(hour=0, minute=0, second=0), nullable=False)
+    max_booking = db.Column(db.Integer, nullable=False, default=0)
 
     def __init__(self, name_service, price=None, duration=None, max_booking=None):
         self.name_service = name_service
@@ -73,7 +71,7 @@ class MyStaff(db.Model):
     __tablename__ = 'mystaff'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name_staff = db.Column(db.String)
+    name_staff = db.Column(db.String, unique=True, nullable=False)
 
     def __init__(self, name_staff):
         self.name_staff = name_staff
@@ -102,9 +100,9 @@ class CompanyUsers(db.Model):
     __tablename__ = 'users_this_company'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name_client = db.Column(db.String)
+    name_client = db.Column(db.String, nullable=False)
     tg_id = db.Column(db.Integer, unique=True)
-    phone_num = db.Column(db.String)
+    phone_num = db.Column(db.String, nullable=False)
 
     def __init__(self, new_name, tg_id, phone_num):
         self.name_client = new_name
@@ -153,15 +151,6 @@ class EventSetting(db.Model):
     day_end_rapid = db.Column(db.Date, default=date(year=1917, month=3, day=2))
 
     weekdays = db.Column(db.ARRAY(db.Integer), default=[])
-    many_day = db.Column(db.ARRAY(db.Date), default=None)
-
-
-    """weekday: 
-    'Mon' -> 0
-    'Thus' -> 1
-    ...
-    'Sun' -> 6
-    """
 
     def __init__(self, **kwargs):
         try:
@@ -190,6 +179,7 @@ class EventSetting(db.Model):
                 self.save_to_db()
                 self.create_days_event()
             except PendingRollbackError:
+                db.session.roolback()
                 print({'message': 'dont pulling event_setting in database'})
 
         except KeyError:
@@ -199,26 +189,30 @@ class EventSetting(db.Model):
         return f"EventSetting ('{self.name_event, self.day_start_g}')"
 
     def add_db_event(self, day_start, day_end, time_start, time_end, flag_transition=False):
+        """создание дней к событию"""
         if day_end - day_start == timedelta(days=1):
-            EventDay(day_start=day_start, day_end=day_start,
+            EventDay(day_start=day_start,
                      time_start=time_start, time_end=time(hour=23, minute=59), setting_id=self.id, flag_transition=True)
-            EventDay(day_start=day_end, day_end=day_end,
+            EventDay(day_start=day_end,
                      time_start=time(hour=0), time_end=time_end, setting_id=self.id, flag_transition=True)
         else:
-            EventDay(day_start=day_start, day_end=day_end,
+            EventDay(day_start=day_start,
                      time_start=time_start, time_end=time_end, setting_id=self.id)
 
     def create_days_event(self):
+        """подготовка дней к созданию"""
         if self.status_repid_day:
             for single_date in self.daterange(self.day_start_g, self.day_end_rapid):
                 if self.weekdays is not None and len(self.weekdays) != 0:
                     if weekday(single_date.year, single_date.month, single_date.day) not in self.weekdays:
                         continue
+                """Выозов функции создания дня"""
                 if self.day_end_g > self.day_start_g:
                     self.add_db_event(single_date, single_date + timedelta(days=1), self.event_time_start, self.event_time_end, flag_transition=True)
                 elif self.day_start_g == self.day_end_g:
                     self.add_db_event(single_date, single_date, self.event_time_start, self.event_time_end)
         else:
+            """Выозов функции создания дня"""
             self.add_db_event(self.day_start_g, self.day_end_g, self.event_time_start, self.event_time_end)
 
     def daterange(self, start_date, end_date):
@@ -241,11 +235,20 @@ class EventSetting(db.Model):
                                         cls.event_time_start == time_start_,
                                         cls.event_time_end == time_end_)).first()
 
+
+    @classmethod
+    def change_time(cls, day):
+        pass
+
+    @classmethod
+    def change_day(cls, day):
+        pass
+
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
 
-    def update_from_db(self):
+    def commit_from_db(self):
         db.session.commit()
 
     def delete_from_db(self):
@@ -256,14 +259,12 @@ class EventSetting(db.Model):
 class EventDay(db.Model):
     __tablename__ = 'event_day_company'
 
-    # __table_args__ = (
-    #     db.UniqueConstraint("event_day_start", "event_day_start", "event_day_end", "event_setting_id"),
-    # )
+    __table_args__ = (
+        db.UniqueConstraint("day_start", "event_setting_id"),
+    )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
-    event_day_start = db.Column(db.Date, nullable=False)
-    event_day_end = db.Column(db.Date, nullable=False)
+    day_start = db.Column(db.Date, nullable=False)
 
     event_time_start = db.Column(db.Time, nullable=False)
     event_time_end = db.Column(db.Time, nullable=False)
@@ -273,14 +274,29 @@ class EventDay(db.Model):
     event_setting_id = db.Column(db.Integer, db.ForeignKey('event_setting.id'))
     connect_event_setting = db.relationship('EventSetting', backref=db.backref('event_day_se', cascade="all, delete-orphan"), lazy='joined')
 
-    def __init__(self, day_start, day_end, time_start, time_end, setting_id, flag_transition=False):
-        self.event_day_start = day_start
-        self.event_day_end = day_end
+    def __init__(self,  day_start, time_start, time_end, setting_id, flag_transition=False):
+        self.day_start = day_start
         self.event_time_start = time_start
         self.event_time_end = time_end
         self.event_setting_id = setting_id
         self.flag_event_transition = flag_transition
+
         self.save_to_db()
+
+    def __repr__(self):
+        return f"EvevntDay ('{self.connect_event_setting}')"
+
+    @classmethod
+    def find_by_event_setting_id(cls, event_id_) -> 'List[EventDay]':
+        return cls.query.filter(cls.event_setting_id == event_id_)
+
+    @classmethod
+    def find_by_event_day_id(cls, event_day_id_) -> 'EventDay':
+        return cls.query.filter(cls.id == event_day_id_).first()
+
+    @classmethod
+    def find_by_event_setting_id_and_day(cls, event_day_id_, day: date) -> 'EventDay':
+        return cls.query.filter(db.and_(cls.event_setting_id == event_day_id_, cls.day_start == day)).first()
 
     def save_to_db(self):
         db.session.add(self)
@@ -296,7 +312,7 @@ class AllBooking(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     time_start = db.Column(db.Time)
     time_end = db.Column(db.Time)
-    day_booking = db.Column(db.Date)
+    flags_transition = db.Column(db.Boolean, default=False, nullable=False)
 
     signup_event = db.Column(db.Integer, db.ForeignKey('event_day_company.id')) #день_записи
     connect_event = db.relationship('EventDay', backref='event_booking')
@@ -311,27 +327,45 @@ class AllBooking(db.Model):
     connect_staff = db.relationship('MyStaff')
     comment = db.Column(db.TEXT)
 
-    def __init__(self, event_id, client_id, service_id, time_start, time_end, staff_id):
-        self.signup_event = event_id
+    def __init__(self, event_setting_id, day, client_id, service_id, time_start, time_end, staff_id=0):
         self.signup_service = service_id
         self.signup_user = client_id
         self.signup_staff = staff_id
         self.time_start = time_start
         self.time_end = time_end
 
+        info_day = EventDay.find_by_event_setting_id_and_day(event_setting_id, day)
+
+        if info_day:
+            if not self.find_exists_booking(info_day.id, client_id, staff_id, time_start, time_end):
+                self.signup_event = info_day.id
+            try:
+                self.save_to_db()
+            except IntegrityError:
+                db.session.rollback()
+
+    def __repr__(self):
+        return f"AllBooking ('{self.connect_event}')"
 
     @classmethod
-    def find_booking_by_event_id(cls, event_id):
+    def find_booking_by_event_id(cls, event_id) -> 'AllBooking':
         if type(event_id) == list:
             return cls.query.filter(cls.signup_event.in_(event_id))
         elif type(event_id) == int:
-            return cls.query.filter(cls.signup_event == event_id)
+            return cls.query.filter(cls.signup_event == event_id).first()
 
-
+    @classmethod
+    def find_exists_booking(cls, event_day_id, client_id, staff_id, time_start, time_end):
+        return cls.query.filter_by(db.and_(cls.signup_event == event_day_id,
+                                           cls.signup_user == client_id,
+                                           cls.signup_staff == staff_id,
+                                           cls.time_start == time_start,
+                                           cls.time_end == time_end)) is not None
 
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
+
 
     def update_from_db(self):
         db.session.commit()

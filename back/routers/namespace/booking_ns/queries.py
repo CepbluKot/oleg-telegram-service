@@ -25,9 +25,9 @@ def get_all_booking():
 
 def get_all_event():
     now_date = datetime.now()
-    query_event = Event.query.filter(Event.day_end >= date(year=now_date.year, month=now_date.month, day=now_date.day))
+    query_event = EventDay.query.filter(EventDay.day_start >= date(year=now_date.year, month=now_date.month, day=now_date.day))
 
-    api_all_event = EventSchema(many=True)
+    api_all_event = EventDaySchema(many=True)
     return api_all_event.dump(query_event)
 
 
@@ -37,7 +37,7 @@ def find_booking_this_day(dat: date):
     between_date_start = EventDay.day_start.between(dat, dat)
     all_booking_service = all_booking_service.filter(between_date_start)
 
-    api_all_booking_schema = EventSchema(many=True)
+    api_all_booking_schema = EventDaySchema(many=True)
     return api_all_booking_schema.dump(all_booking_service)
 
 
@@ -88,16 +88,16 @@ def get_indo_calendar(cor_date: Filter):
 
     answer_calendar = [] #example = [{day: "2022-01-22", booking = {}}, ]
     start_end_weeks, all_week = find_boundaries_week(cor_date.this_date_filter)
-    try:
-        for one_day in all_week:
-            cor_date.this_date_filter = one_day
-            one_answer_booking = AnswerCalendar(day=one_day.strftime('%Y-%m-%d'),
-                                                booking=find_booking_this_day(one_day))
+    #try:
+    for one_day in all_week:
+        cor_date.this_date_filter = one_day
+        one_answer_booking = AnswerCalendar(day=one_day.strftime('%Y-%m-%d'),
+                                            event_day=find_booking_this_day(one_day))
 
-            answer_calendar.append(json.loads(one_answer_booking.json()))
-    except:
-        print("error: fun in get_indo_calendar")
-        return None, 404
+        answer_calendar.append(json.loads(one_answer_booking.json()))
+    #except:
+        # print("error: fun in get_indo_calendar")
+        # return None, 404
 
     return answer_calendar
 

@@ -3,13 +3,13 @@ from flask import request, jsonify
 from setting_web import flask_app, db, head_conf, cross_origin
 from sqlalchemy.exc import IntegrityError, PendingRollbackError
 from pydantic import ValidationError
-from flask_restplus import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields, reqparse
 from datetime import time
 from setting_web import token_required
-from .validate import ValidateEvent, FilterEvent as Filter, WindowDataService
+from .validate import ValidateEvent, FilterEvent as Filter, WindowDataService, UpdateEvent
 from .queries import get_filter_work_day, find_boundaries_week, all_working_date
 from .schema import EventSettingSchema
-from back.models.booking_models import EventSetting, ServiceEvent, MyService
+from ....models.booking_models import EventSetting, ServiceEvent, MyService, EventDay
 
 
 event = Namespace('event', 'This-Event_API', authorizations=head_conf.auth_setting_swagger)
@@ -47,8 +47,9 @@ info_event = event.model('Data about one event', {
 
 
 update_info_event = event.model("Event update model", {
-    "name_field_change_date": fields.List(fields.String(), example=[]),
-    "data_service": fields.Nested(one_windows_service)
+    "name_field_change_date": fields.List(fields.String(), example=["day_start"]),
+    "id_event": fields.Integer(example=1),
+    "data_service_update": fields.Nested(info_event)
 })
 
 
@@ -58,7 +59,7 @@ class EventApi(Resource):
     @cross_origin(origins=["*"], supports_credentials=True)
     @token_required
     def get(self):
-        return all_working_date()
+        return jsonify(all_working_date())
 
     @event.expect(info_event)
     @cross_origin(origins=["*"], supports_credentials=True)
@@ -110,8 +111,39 @@ class EventApi(Resource):
 
     @event.expect(update_info_event)
     def put(self):
-        pass
+        try:
+            new_event = UpdateEvent(**request.get_json())
+        except ValidationError as e:
+            return {"message": e.json()}, 401
 
+        events_p = EventSetting.find_by_id(new_event.id_event)
+        events_day_p = EventDay.find_by_event_setting_id(new_event.id_event)
 
+        if events_p:
+            for one_parameter in new_event.name_field_change_date:
+                try:
+                    if one_parameter == 'day_start':
+                        pass
+                except KeyError:
+                    return {"message":  "event not found parameter"}, 401
+        else:
+            return {"message":  "event not found"}, 401
+
+    @event.doc(params={'event_set_id': 'id'})
     def delete(self):
-        pass
+        event_url_parse = reqparse.RequestParser()
+        event_url_parse.add_argument("event_set_id", type=int)
+
+        try:
+            id_event = event_url_parse.parse_args()['event_set_id']
+        except KeyError:
+            return {"message": "not correct url"}, 404
+
+        data_event = EventSetting.find_by_id(id_event)
+
+        if data_event:
+            data_event.delete_from_db()
+            return {"message": "deletion successful"}, 200
+        else:
+            return {"message": "not correct input data"}, 401
+

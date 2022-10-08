@@ -20,7 +20,7 @@ import flask.scaffold
 flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
 
 config = configparser.ConfigParser()
-config.read('conf_back.ini')
+config.read(os.path.abspath(os.path.dirname(__file__)) + '/conf_back.ini')
 
 flask_app = Flask(__name__)
 
@@ -37,13 +37,15 @@ class HeadConfigApp:
         flask_app.debug = config['FLASK']['FLASK_DEBUG']
         flask_app.config['CORS_HEADERS'] = config['FLASK']['CORS_HEADERS']
         flask_app.config['FLASK_ENV'] = config['FLASK']['FLASK_ENV']
+        flask_app.config['JSON_AS_ASCII'] = config['FLASK']['JSON_AS_ASCII']
         flask_app.config['SECRET_KEY'] = config['FLASK']['SECRET_KEY']
 
         flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config['FLASK']['SQLALCHEMY_TRACK_MODIFICATIONS']
-        flask_app.config['SQLALCHEMY_DATABASE_URI'] = config['FLASK']['SQLALCHEMY_DATABASE_URI']
+        flask_app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL",
+                                                                config['FLASK']['SQLALCHEMY_DATABASE_URI'])
 
         flask_app.config['JWT_SECRET_KEY'] = config['JWT']['JWT_SECRET_KEY']
-        flask_app.config['RESTPLUS_MASK_SWAGGER'] = config['SWAGGER']['RESTPLUS_MASK_SWAGGER']
+        flask_app.config['RESTX_MASK_SWAGGER'] = config['SWAGGER']['RESTX_MASK_SWAGGER']
         flask_app.config['SWAGGER_UI_JSONEDITOR'] = config['SWAGGER']['SWAGGER_UI_JSONEDITOR']
 
         flask_app.config['BASIC_AUTH_USERNAME'] = config['FLASK']['BASIC_AUTH_USERNAME']

@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  app:
+    build: ./docker_com
+    container_name: flask_build_app
+    command: . /tg_helper/env/bin/activate && exec python3 /tg_helper/main.py

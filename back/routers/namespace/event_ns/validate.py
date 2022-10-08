@@ -62,13 +62,6 @@ class ValidateEvent(BaseModel):
                 raise ValueError('the day was chosen incorrectly')
         return values
 
-    # @validator('day', pre=True)
-    # def check_reliability_date(cls, v,  values, **kwargs):
-    #     now_date = datetime.now()
-    #     if 'day_start' not in values or v > date(year=now_date.year, month=now_date.month, day=now_date.day):
-    #         raise ValueError('dates well, does it exist or is it not valid')
-    #     return v
-
 
 class FilterEvent(BaseModel):
     id: Optional[int] = None
@@ -84,5 +77,11 @@ class WindowDataService(BaseModel):
     end_time: time
     status_booking: bool
     id_client_booking: int = 0
+
+
+class UpdateEvent(BaseModel):
+    name_field_change_date: List[str]
+    id_event: int
+    data_service_update: Dict
 
 

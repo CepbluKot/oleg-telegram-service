@@ -1,4 +1,4 @@
-from flask_restplus import Resource, Namespace, fields
+from flask_restx import Resource, Namespace, fields
 from flask import request
 from pydantic import ValidationError
 

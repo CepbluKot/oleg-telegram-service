@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from functools import wraps
-from flask_restplus import Api
+from flask_restx import Api
 from .booking_ns.booking_ns import booking
 from .service_ns.service_ns import service
 from .event_ns.event_ns import event

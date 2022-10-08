@@ -5,34 +5,38 @@ from typing import Optional, List
 from ..service_ns.queries import check_exit_service as verify_exit_service
 
 
-class BookingSchema(BaseModel):
+class BookingValidate(BaseModel):
     time_start: time
     time_end: time
-    id_event: conint(gt=1)
-    tg_id: conint(gt=4)
-    name_service: constr(min_length=2)
+    event_setting_id: conint(ge=1)
+    day_start: date
+    day_end: date
+    service_id: conint(ge=1)
+    staff_id: int
+    client_id: conint(ge=1)
 
     @root_validator(allow_reuse=True)
     def check_reliability_date(cls, values):
-        if ('time_start' not in values) or ('time_end' not in values):
+        if ('time_start' not in values) or ('time_end' not in values) or ('day_end' not in values) or ('day_start' not in values):
             raise ValueError('error typing time')
 
-        start, end = values.get('time_start'), values.get('time_end')
+        time_start, time_end, day_start, day_end = values.get('time_start'), values.get('time_end'), \
+                                         values.get('day_start'), values.get('day_end')
 
-        if start >= end:
+        if day_start > day_end:
             raise ValueError('start event value less than end event value')
-        return values
 
-    @validator('name_service')
-    def check_exit_service(cls, v,  values, **kwargs):
-        if 'name_service' not in values or not verify_exit_service(v):
-            raise ValueError('error typing time')
+        if day_start < day_end and time_start < time_end:
+            raise ValueError('start event value less than end event value')
+
+        if day_start == day_end and time_start > time_end:
+            raise ValueError('start event value less than end event value')
         return values
 
 
 class AnswerCalendar (BaseModel):
     day: date
-    booking: list
+    event_day: list
 
 
 class FilterClientBooking(BaseModel):
