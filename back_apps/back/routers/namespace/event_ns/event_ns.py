@@ -37,12 +37,12 @@ info_event = event.model('Data about one event', {
     "name": fields.String(example='LANCH GOOO'),
     "day_start": fields.Date(example='1971-06-28'),
     "day_end": fields.Date(example='2010-06-04'),
+    "day_end_repid": fields.Date(example='2123-09-23'),
     "start_event": TimeFormat(example='13:30'),
     "end_event": TimeFormat(example='17:30'),
     "service_this_day": fields.List(fields.Nested(connect_event_service)),
     "weekday_list": fields.List(fields.Integer, example=[]),
-    "status_repid_day": fields.Boolean(example=False),
-    "day_end_repid": fields.Date(example='2123-09-23')
+    "status_repid_day": fields.Boolean(example=False)
 })
 
 
@@ -64,6 +64,8 @@ class EventApi(Resource):
     @event.expect(info_event)
     @cross_origin(origins=["*"], supports_credentials=True)
     def post(self):
+
+        print(request.get_json())
         try:
             new_event = ValidateEvent(**request.get_json())
         except ValidationError as e:

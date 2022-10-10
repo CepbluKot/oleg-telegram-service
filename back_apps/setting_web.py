@@ -74,12 +74,14 @@ def token_required(f):
         return f(*args, **kwargs)
     return decorated
 
+
 head_conf = HeadConfigApp()
 
 jwt = JWTManager(flask_app)
 db = SQLAlchemy(flask_app)
 ma = Marshmallow(flask_app)
 admin = Admin(flask_app, name='OLEG')
+CORS(flask_app)
 
 celery_app = Celery(flask_app.name, broker=flask_app.config["CELERY_BROKER_URL"])
 celery_app.conf.update(flask_app.config)

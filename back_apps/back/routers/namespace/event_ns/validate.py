@@ -31,17 +31,18 @@ class ValidateEvent(BaseModel):
     name: constr(min_length=2, max_length=100)
     day_start: date
     day_end: date
+    status_repid_day: bool = False
+    day_end_repid: date
     start_event: time
     end_event: time
     service_this_day: Optional[List[ServiceEvent]]
     weekday_list: Optional[List[int]] = None
-    status_repid_day: bool = False
-    day_end_repid: Optional[date] = None
 
 
-    @root_validator(allow_reuse=True)
+    @root_validator()
     def check_reliability_time(cls, values):
-        if ('start_event' not in values) or ('end_event' not in values):
+        print(values.get('day_end_repid'))
+        if ('start_event' not in values) or ('end_event' not in values) or ('day_end_repid' not in values):
             raise ValueError('error typing time')
 
         if ('day_start' not in values) or ('day_end' not in values):
@@ -50,6 +51,13 @@ class ValidateEvent(BaseModel):
         start_time, end_time = values.get('start_event'), values.get('end_event')
         start_day, end_day = values.get('day_start'), values.get('day_end')
 
+        status_repid_day = values.get('status_repid_day')
+        day_end_repid = values.get('day_end_repid')
+
+        if status_repid_day is False and day_end_repid != end_day:
+            print('ee')
+            raise ValueError('the flag is specified incorrectly')
+
         if start_time >= end_time and start_day >= end_day:
             raise ValueError('start event value less than end event value')
 
@@ -57,8 +65,7 @@ class ValidateEvent(BaseModel):
             raise ValueError('the difference between days is more than 1')
 
         if 'day_end_repid' in values:
-            day_end_rapid = values.get('day_end_rapid')
-            if day_end_rapid and day_end_rapid < start_day:
+            if day_end_repid and day_end_repid < start_day:
                 raise ValueError('the day was chosen incorrectly')
         return values
 

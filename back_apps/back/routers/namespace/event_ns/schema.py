@@ -19,5 +19,6 @@ class EventSettingSchema(ma.SQLAlchemyAutoSchema):
         model = EventSetting
         load_instance = True
         include_relationships = True
+        exclude = ("event_day_se", )
 
     event_se = ma.List(ma.Nested(ServiceEventSchema(exclude=("event_connect",))))

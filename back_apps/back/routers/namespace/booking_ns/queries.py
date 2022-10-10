@@ -86,16 +86,16 @@ def get_indo_calendar(cor_date: Filter):
 
     answer_calendar = [] #example = [{day: "2022-01-22", booking = {}}, ]
     start_end_weeks, all_week = find_boundaries_week(cor_date.this_date_filter)
-    #try:
-    for one_day in all_week:
-        cor_date.this_date_filter = one_day
-        one_answer_booking = AnswerCalendar(day=one_day.strftime('%Y-%m-%d'),
-                                            event_day=find_booking_this_day(one_day))
+    try:
+        for one_day in all_week:
+            cor_date.this_date_filter = one_day
+            one_answer_booking = AnswerCalendar(day=one_day.strftime('%Y-%m-%d'),
+                                                event_day=find_booking_this_day(one_day))
 
-        answer_calendar.append(json.loads(one_answer_booking.json()))
-    #except:
-        # print("error: fun in get_indo_calendar")
-        # return None, 404
+            answer_calendar.append(json.loads(one_answer_booking.json()))
+    except:
+        print("error: fun in get_indo_calendar")
+        return None, 404
 
     return answer_calendar
 

@@ -14,6 +14,8 @@ from setting_web import cross_origin
 
 
 class TimeFormat(fields.Raw):
+    __schema_type__ = "string"
+    __schema_format__ = "time"
     def format(self, value):
         return time.strftime(value, "%H:%M")
 
