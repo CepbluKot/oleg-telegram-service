@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  back:
+    image: tg_helper_back:latest
+    container_name: flask_build_app
+    command: >  
+         bash -c " flask db init
+         && flask db revision --rev-id  68a82f6ba8a3
+         && flask db migrate
+         && flask db upgrade
+         && flask run -h 0.0.0.0"
+    ports:
+      - 5000:5000
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:admin@db:5432/system_control
+    depends_on:
+      - db
+  db:
+    image: postgres:latest
+    volumes:
+      - ./pg_db:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=system_control
+  nginx:
+    image: nginx_help:latest
+    ports:
+      - 80:80
+    depends_on:
+      - back

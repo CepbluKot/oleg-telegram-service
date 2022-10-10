@@ -6,8 +6,7 @@ from bot_modules.register.register_repository.register_repository_interface impo
 )
 from bot_modules.register.data_structures import User, DatabaseUser
 
-from adapter_tg import adapter_tg
-
+from back_apps.adapter_tg import adapter_tg
 
 register_data = {}  # userId: stud/prep
 edited_register_data = {}  # serId: stud/prep
