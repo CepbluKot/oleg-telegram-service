@@ -2,6 +2,7 @@ from flask import request, jsonify
 from flask_restx import Namespace, Resource, fields
 from pydantic import ValidationError
 from datetime import time
+from sqlalchemy.exc import IntegrityError
 
 from ....models.booking_models import MyService, ServiceStaffConnect
 from .queries import all_service, get_filter_services
@@ -63,7 +64,9 @@ class AllService(Resource):
 
                 new_service = MyService(**one_service)
                 new_service.save_to_db()
-        except IndexError:
+        except IndexError :
+            return jsonify({'message': 'dont add new service'}), 400
+        except IntegrityError:
             return jsonify({'message': 'dont add new service'}), 400
 
         return jsonify({'message': 'successful addition'}), 200

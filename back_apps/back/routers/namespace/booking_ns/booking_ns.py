@@ -4,7 +4,7 @@ from datetime import time, datetime
 from pydantic import ValidationError
 
 from sqlalchemy.exc import IntegrityError
-from .queries import get_indo_calendar, get_all_event
+from .queries import get_indo_calendar, get_all_event, find_freedom_booking
 from ....models.booking_models import AllBooking
 from .validate import FilterBooking as Filter, BookingValidate
 
@@ -133,9 +133,9 @@ freedom_booking = booking.model('FreedomBooking', {
 })
 
 
-# @booking.route('/search')
-# class BookingSearch(Resource):
-#     @booking.expect(freedom_booking)
-#     def post(self):
-#         name_service = request.get_json()['name_service']
-#         return find_freedom_booking(name_service)
+@booking.route('/search')
+class BookingSearch(Resource):
+    @booking.expect(freedom_booking)
+    def post(self):
+        name_service = request.get_json()['name_service']
+        return find_freedom_booking(name_service)

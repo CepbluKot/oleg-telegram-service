@@ -54,19 +54,32 @@ class ValidateEvent(BaseModel):
         status_repid_day = values.get('status_repid_day')
         day_end_repid = values.get('day_end_repid')
 
-        if status_repid_day is False and day_end_repid != end_day:
-            print('ee')
-            raise ValueError('the flag is specified incorrectly')
+        weekday_list = values.get("weekday_list")
 
         if start_time >= end_time and start_day >= end_day:
             raise ValueError('start event value less than end event value')
 
-        if end_day - start_day > timedelta(days=1):
-            raise ValueError('the difference between days is more than 1')
+        if day_end_repid and (day_end_repid < start_day or day_end_repid < end_day):
+            raise ValueError('the day was chosen incorrectly')
 
-        if 'day_end_repid' in values:
-            if day_end_repid and day_end_repid < start_day:
-                raise ValueError('the day was chosen incorrectly')
+        if not status_repid_day and day_end_repid != end_day:
+            raise ValueError('the day was chosen incorrectly')
+
+        if status_repid_day and day_end_repid == end_day:
+            raise ValueError('the day was chosen incorrectly')
+
+        if start_time < end_time and start_day != end_day:
+            if status_repid_day and len(weekday_list) == 0:
+                raise ValueError('the flag is specified incorrectly')
+
+            if status_repid_day and len(weekday_list) != 0:
+                last_day = -1
+                for one_day in weekday_list:
+                    if one_day -1 == last_day:
+                        raise ValueError('the flag is specified incorrectly')
+                    else:
+                        last_day = one_day
+
         return values
 
 

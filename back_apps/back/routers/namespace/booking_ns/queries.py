@@ -33,7 +33,8 @@ def find_booking_this_day(dat: date):
     all_booking_service = EventDay.query
 
     between_date_start = EventDay.day_start.between(dat, dat)
-    all_booking_service = all_booking_service.filter(between_date_start)
+    between_date_end = EventDay.day_end.between(dat, dat)
+    all_booking_service = all_booking_service.filter(db.or_(between_date_start, between_date_end))
 
     api_all_booking_schema = EventDaySchema(many=True)
     return api_all_booking_schema.dump(all_booking_service)
@@ -143,69 +144,71 @@ def find_freedom_booking(name_service):
     info_service = MyService.find_by_name(name_service)
 
     all_event_id = []
-    answer = []
+    new_answer = []
 
     try:
         for one_q in con_ser_event:
             all_event_id.append(one_q.event_id)
 
         now_date = datetime.now()
-        info_events = EventDay.query.filter(db.and_(EventDay.id.in_(all_event_id),
-                                           EventDay.day_end >= date(year=now_date.year, month=now_date.month, day=now_date.day))).all()
+        info_events = EventDay.query.filter(db.and_(EventDay.event_setting_id.in_(all_event_id),
+                                           EventDay.day_start >= date(year=now_date.year, month=now_date.month, day=now_date.day)))
 
         info_booking = AllBooking.find_booking_by_event_id(all_event_id)
 
-        for one_event in info_events:
-            "Подготовка апи для одного события"
-            if one_event.weekdays is None or len(one_event.weekdays) == 0:
-                intervals_list = [[one_event.start_event, one_event.end_event]]
-                interval_time = {"day": one_event.day_start,
-                                 "event": one_event.name_event,
-                                 "intervals": intervals_list}
 
-                all_booking_this_ev = info_booking.filter(AllBooking.signup_event == one_event.id).all()
-
-                intervals_list = find_intervals(intervals_list, all_booking_this_ev)
-                intervals_list = fraction_window(intervals_list, info_service)
-
-                interval_time["intervals"] = intervals_list
-                answer.append(interval_time)
-
-                #дробь окон
-            else:
-                "Подготовка апи для одного события"
-                for one_day in one_event.many_day:
-                    intervals_list = [[one_event.start_event, one_event.end_event]]
-
-                    interval_time = {"day": one_day,
-                                     "event": one_event.name_event,
-                                     "intervals": intervals_list}
-
-                    all_booking_this_ev = info_booking.filter(db.and_(AllBooking.signup_event == one_event.id,
-                                                                      AllBooking.day_booking == one_day)).all()
-
-                    """Поиск интервало"""
-                    for one_booking in all_booking_this_ev:
-                        for iter_interval in range(len(intervals_list)):
-                            if one_booking.time_start >= intervals_list[iter_interval][0] and one_booking.time_end <= \
-                                    intervals_list[iter_interval][1]:
-                                left_intervals = [intervals_list[iter_interval][0], one_booking.time_start]
-                                right_intervals = [one_booking.time_end, intervals_list[iter_interval][1]]
-
-                                intervals_list.pop(iter_interval)
-                                intervals_list.extend([left_intervals, right_intervals])
-                                break
-
-                    intervals_list = fraction_window(intervals_list, info_service)
-
-                    interval_time["intervals"] = intervals_list
-                    answer.append(interval_time)
-
-        new_answer = []
-        for one_window in answer:
-            new_answer.append(json.loads(FrBooking(**one_window).json()))
+    #
+    #     for one_event in info_events:
+    #         "Подготовка апи для одного события"
+    #         if one_event.weekdays is None or len(one_event.weekdays) == 0:
+    #             intervals_list = [[one_event.start_event, one_event.end_event]]
+    #             interval_time = {"day": one_event.day_start,
+    #                              "event": one_event.name_event,
+    #                              "intervals": intervals_list}
+    #
+    #             all_booking_this_ev = info_booking.filter(AllBooking.signup_event == one_event.id).all()
+    #
+    #             intervals_list = find_intervals(intervals_list, all_booking_this_ev)
+    #             intervals_list = fraction_window(intervals_list, info_service)
+    #
+    #             interval_time["intervals"] = intervals_list
+    #             answer.append(interval_time)
+    #
+    #             #дробь окон
+    #         else:
+    #             "Подготовка апи для одного события"
+    #             for one_day in one_event.many_day:
+    #                 intervals_list = [[one_event.start_event, one_event.end_event]]
+    #
+    #                 interval_time = {"day": one_day,
+    #                                  "event": one_event.name_event,
+    #                                  "intervals": intervals_list}
+    #
+    #                 all_booking_this_ev = info_booking.filter(db.and_(AllBooking.signup_event == one_event.id,
+    #                                                                   AllBooking.day_booking == one_day)).all()
+    #
+    #                 """Поиск интервало"""
+    #                 for one_booking in all_booking_this_ev:
+    #                     for iter_interval in range(len(intervals_list)):
+    #                         if one_booking.time_start >= intervals_list[iter_interval][0] and one_booking.time_end <= \
+    #                                 intervals_list[iter_interval][1]:
+    #                             left_intervals = [intervals_list[iter_interval][0], one_booking.time_start]
+    #                             right_intervals = [one_booking.time_end, intervals_list[iter_interval][1]]
+    #
+    #                             intervals_list.pop(iter_interval)
+    #                             intervals_list.extend([left_intervals, right_intervals])
+    #                             break
+    #
+    #                 intervals_list = fraction_window(intervals_list, info_service)
+    #
+    #                 interval_time["intervals"] = intervals_list
+    #                 answer.append(interval_time)
+    #
+    #     new_answer = []
+    #     for one_window in answer:
+    #         new_answer.append(json.loads(FrBooking(**one_window).json()))
     except TypeError:
-        return None, 404
+        return {"message": "not find this service"}, 404
 
     return new_answer, 200
 
