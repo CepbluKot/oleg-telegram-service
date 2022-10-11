@@ -1,10 +1,10 @@
-from flask import request
+from flask import request, jsonify
 from flask_restx import Namespace, Resource, fields, reqparse
 from datetime import time, datetime
 from pydantic import ValidationError
 
 from sqlalchemy.exc import IntegrityError
-from .queries import get_indo_calendar, get_all_event
+from .queries import get_indo_calendar, get_all_event, find_freedom_booking
 from ....models.booking_models import AllBooking
 from .validate import FilterBooking as Filter, BookingValidate
 
@@ -106,9 +106,9 @@ booking_filter = booking.model('BookingFilter', {
 #         add_filter = Filter(**request.get_json())
 #         res_data = get_filter_booking(add_filter)
 
-@cross_origin(origins=["*"], supports_credentials=True)
 @booking.route('/calendar')
 class CalendarBooking(Resource):
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
     @booking.doc(security='apikey')
     @token_required
     @booking.doc(params={'cal_date': 'date format 2022-05-27'})
@@ -125,7 +125,7 @@ class CalendarBooking(Resource):
 
         calendar_date = Filter()
         calendar_date.this_date_filter = cal_date
-        return get_indo_calendar(calendar_date), 200
+        return jsonify(get_indo_calendar(calendar_date)), 200
 
 
 freedom_booking = booking.model('FreedomBooking', {
@@ -133,9 +133,9 @@ freedom_booking = booking.model('FreedomBooking', {
 })
 
 
-# @booking.route('/search')
-# class BookingSearch(Resource):
-#     @booking.expect(freedom_booking)
-#     def post(self):
-#         name_service = request.get_json()['name_service']
-#         return find_freedom_booking(name_service)
+@booking.route('/search')
+class BookingSearch(Resource):
+    @booking.expect(freedom_booking)
+    def post(self):
+        name_service = request.get_json()['name_service']
+        return find_freedom_booking(name_service)

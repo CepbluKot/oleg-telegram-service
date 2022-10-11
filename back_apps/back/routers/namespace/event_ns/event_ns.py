@@ -37,12 +37,12 @@ info_event = event.model('Data about one event', {
     "name": fields.String(example='LANCH GOOO'),
     "day_start": fields.Date(example='1971-06-28'),
     "day_end": fields.Date(example='2010-06-04'),
+    "day_end_repid": fields.Date(example='2123-09-23'),
     "start_event": TimeFormat(example='13:30'),
     "end_event": TimeFormat(example='17:30'),
     "service_this_day": fields.List(fields.Nested(connect_event_service)),
     "weekday_list": fields.List(fields.Integer, example=[]),
-    "status_repid_day": fields.Boolean(example=False),
-    "day_end_repid": fields.Date(example='2123-09-23')
+    "status_repid_day": fields.Boolean(example=False)
 })
 
 
@@ -70,19 +70,20 @@ class EventApi(Resource):
             return {"message": e.json()}, 404
         try:
             find_new_event = EventSetting(day_start_g=new_event.day_start,
-                            day_end_g=new_event.day_end,
-                            event_time_start=new_event.start_event,
-                            event_time_end=new_event.end_event,
-                            name_event=new_event.name,
-                            weekdays=new_event.weekday_list,
-                            status_repid_day=new_event.status_repid_day,
-                            day_end_rapid=new_event.day_end_repid
-                        )
-
+                                        day_end_g=new_event.day_end,
+                                        event_time_start=new_event.start_event,
+                                        event_time_end=new_event.end_event,
+                                        name_event=new_event.name,
+                                        weekdays=new_event.weekday_list,
+                                        status_repid_day=new_event.status_repid_day,
+                                        day_end_rapid=new_event.day_end_repid
+                                 )
         except PendingRollbackError:
             return {"message": "this event alredy exist"}, 401
         except IntegrityError:
             return {"message": "this event alredy exist"}, 401
+        except ValueError:
+            return {"message": "not correct input data"}, 401
 
         if find_new_event:
             object_connect = []

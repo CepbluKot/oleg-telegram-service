@@ -164,16 +164,19 @@ class EventSetting(db.Model):
                 self.status_repid_day = kwargs['status_repid_day']
             except KeyError:
                 print({'message': 'dont get status rapid day'})
+                raise ValueError
 
             try:
                 self.day_end_rapid = kwargs['day_end_rapid']
             except KeyError:
                 print({'message': 'dont get day_end_rapid'})
+                raise ValueError
 
             try:
                 self.weekdays = kwargs['weekdays']
             except KeyError:
                 print({'message': 'dont get weekdays'})
+                raise ValueError
 
             try:
                 self.save_to_db()
@@ -181,34 +184,32 @@ class EventSetting(db.Model):
             except PendingRollbackError:
                 db.session.roolback()
                 print({'message': 'dont pulling event_setting in database'})
+                raise ValueError
 
         except KeyError:
             print({'message': 'dont create event'})
+            raise ValueError
 
     def __repr__(self):
         return f"EventSetting ('{self.name_event, self.day_start_g}')"
 
-    def add_db_event(self, day_start, day_end, time_start, time_end, flag_transition=False):
+    def add_db_event(self, day_start, day_end, time_start, time_end):
         """создание дней к событию"""
-        if day_end - day_start == timedelta(days=1):
-            EventDay(day_start=day_start,
-                     time_start=time_start, time_end=time(hour=23, minute=59), setting_id=self.id, flag_transition=True)
-            EventDay(day_start=day_end,
-                     time_start=time(hour=0), time_end=time_end, setting_id=self.id, flag_transition=True)
-        else:
-            EventDay(day_start=day_start,
-                     time_start=time_start, time_end=time_end, setting_id=self.id)
+        try:
+            EventDay(day_start=day_start, day_end=day_end, time_start=time_start, time_end=time_end, setting_id=self.id)
+        except:
+            self.delete_from_db()
+            raise ValueError("not correct input data")
 
     def create_days_event(self):
         """подготовка дней к созданию"""
         if self.status_repid_day:
             for single_date in self.daterange(self.day_start_g, self.day_end_rapid):
-                if self.weekdays is not None and len(self.weekdays) != 0:
-                    if weekday(single_date.year, single_date.month, single_date.day) not in self.weekdays:
-                        continue
-                """Выозов функции создания дня"""
+                if len(self.weekdays) and weekday(single_date.year, single_date.month, single_date.day) not in self.weekdays:
+                    continue
+
                 if self.day_end_g > self.day_start_g:
-                    self.add_db_event(single_date, single_date + timedelta(days=1), self.event_time_start, self.event_time_end, flag_transition=True)
+                    self.add_db_event(single_date, single_date + timedelta(days=1), self.event_time_start, self.event_time_end)
                 elif self.day_start_g == self.day_end_g:
                     self.add_db_event(single_date, single_date, self.event_time_start, self.event_time_end)
         else:
@@ -260,26 +261,26 @@ class EventDay(db.Model):
     __tablename__ = 'event_day_company'
 
     __table_args__ = (
-        db.UniqueConstraint("day_start", "event_setting_id"),
+         db.UniqueConstraint("event_setting_id", "event_time_start", "event_time_end", "day_start", "day_end"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
     day_start = db.Column(db.Date, nullable=False)
+    day_end = db.Column(db.Date, nullable=False)
 
     event_time_start = db.Column(db.Time, nullable=False)
     event_time_end = db.Column(db.Time, nullable=False)
 
-    flag_event_transition = db.Column(db.Boolean, default=False)
-
     event_setting_id = db.Column(db.Integer, db.ForeignKey('event_setting.id'))
     connect_event_setting = db.relationship('EventSetting', backref=db.backref('event_day_se', cascade="all, delete-orphan"), lazy='joined')
 
-    def __init__(self,  day_start, time_start, time_end, setting_id, flag_transition=False):
+    def __init__(self,  day_start, day_end, time_start, time_end, setting_id):
         self.day_start = day_start
+        self.day_end = day_end
         self.event_time_start = time_start
         self.event_time_end = time_end
         self.event_setting_id = setting_id
-        self.flag_event_transition = flag_transition
 
         self.save_to_db()
 
@@ -411,7 +412,9 @@ class ServiceEvent(db.Model):
     def event_search_by_service(cls, service_name):
         find_service = MyService.find_by_name(service_name)
         try:
-            return cls.query.filter(db.and_(cls.service_id == find_service.id)).options(db.load_only(cls.event_id)).all()
+            # return cls.query.filter(db.and_(cls.service_id == find_service.id)).options(db.load_only(cls.event_id)).all()
+            return cls.query.filter(cls.service_id == find_service.id).all()
+
         except AttributeError:
             return None
 
