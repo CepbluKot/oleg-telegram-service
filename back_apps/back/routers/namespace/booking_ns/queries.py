@@ -1,9 +1,10 @@
-from ....models.booking_models import AllBooking, EventDay, MyService, ServiceEvent
+from ....models.booking_models import AllBooking, EventDay, MyService, ServiceEvent, EventSetting
 from setting_web import db
+from sqlalchemy import case
 from ..event_ns.queries import find_boundaries_week
 
 from .validate import FilterBooking as Filter, FreedomBooking as FrBooking, AnswerCalendar
-from .schema import InfoBookingSchema, EventDaySchema
+from .schema import InfoBookingSchema, EventDaySchema, EventDayCorrectDateSchema
 
 import json
 from datetime import datetime, timedelta, time, date
@@ -31,13 +32,24 @@ def get_all_event():
 
 def find_booking_this_day(dat: date):
     all_booking_service = EventDay.query
-
     between_date_start = EventDay.day_start.between(dat, dat)
     between_date_end = EventDay.day_end.between(dat, dat)
-    all_booking_service = all_booking_service.filter(db.or_(between_date_start, between_date_end))
 
-    api_all_booking_schema = EventDaySchema(many=True)
-    return api_all_booking_schema.dump(all_booking_service)
+    res_query_sql = all_booking_service.filter(db.or_(between_date_start, between_date_end))
+    res_query = res_query_sql.subquery()
+
+    cs_start = db.case([(res_query.c.day_end == dat, time(hour=0)),
+                        (db.and_(res_query.c.day_end < dat, res_query.c.day_start > dat), time(hour=0))],
+                       else_=res_query.c.event_time_start).label("correct_time_start")
+
+    cs_end = db.case([(res_query.c.day_start == dat, time(hour=23, minute=59)),
+                      (db.and_(res_query.c.day_end < dat, res_query.c.day_start > dat), time(hour=23, minute=59))],
+                     else_=res_query.c.event_time_end).label("correct_time_end")
+
+    res_query = db.session.query(res_query, EventDay, cs_start, cs_end).join(EventDay, res_query.c.id == EventDay.id)
+
+    api_all_booking_schema = EventDayCorrectDateSchema(many=True)
+    return api_all_booking_schema.dump(res_query)
 
 
 # def get_filter_booking(new_filter: Filter):
@@ -87,16 +99,16 @@ def get_indo_calendar(cor_date: Filter):
 
     answer_calendar = [] #example = [{day: "2022-01-22", booking = {}}, ]
     start_end_weeks, all_week = find_boundaries_week(cor_date.this_date_filter)
-    try:
-        for one_day in all_week:
-            cor_date.this_date_filter = one_day
-            one_answer_booking = AnswerCalendar(day=one_day.strftime('%Y-%m-%d'),
-                                                event_day=find_booking_this_day(one_day))
+    # try:
+    for one_day in all_week:
+        cor_date.this_date_filter = one_day
+        one_answer_booking = AnswerCalendar(day=one_day.strftime('%Y-%m-%d'),
+                                            event_day=find_booking_this_day(one_day))
 
-            answer_calendar.append(json.loads(one_answer_booking.json()))
-    except:
-        print("error: fun in get_indo_calendar")
-        return None, 404
+        answer_calendar.append(json.loads(one_answer_booking.json()))
+    # except:
+    #     print("error: fun in get_indo_calendar")
+    #     return None, 404
 
     return answer_calendar
 
