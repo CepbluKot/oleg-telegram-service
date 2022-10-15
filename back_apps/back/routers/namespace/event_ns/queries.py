@@ -94,3 +94,8 @@ def weeks_in_all_event(name_service=None):
             weeks_day.append(work_day.day)
 
     return weeks_day
+
+
+# 1. Редактированик описания
+# 2. Редактирование повторений
+# 3. Редактирование одного и вынос одного дня

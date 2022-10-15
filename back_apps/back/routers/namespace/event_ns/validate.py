@@ -22,8 +22,8 @@ class TimeServices(BaseModel):
 
 class ServiceEvent(BaseModel):
     """Словарь услуги для события"""
-    name_service: str
-    name_staff: Optional[str] = None
+    id_service: int
+    id_staff: Optional[int] = None
     count_service_this_event: Optional[List[TimeServices]]
 
 
@@ -32,7 +32,7 @@ class ValidateEvent(BaseModel):
     day_start: date
     day_end: date
     status_repid_day: bool = False
-    day_end_repid: date
+    day_end_repid: Optional[date] = None
     start_event: time
     end_event: time
     service_this_day: Optional[List[ServiceEvent]]
@@ -52,33 +52,28 @@ class ValidateEvent(BaseModel):
         start_day, end_day = values.get('day_start'), values.get('day_end')
 
         status_repid_day = values.get('status_repid_day')
-        day_end_repid = values.get('day_end_repid')
-
-        weekday_list = values.get("weekday_list")
 
         if start_time >= end_time and start_day >= end_day:
             raise ValueError('start event value less than end event value')
 
-        if day_end_repid and (day_end_repid < start_day or day_end_repid < end_day):
-            raise ValueError('the day was chosen incorrectly')
+        day_end_repid = values.get('day_end_repid')
+        weekday_list = values.get("weekday_list")
 
-        if not status_repid_day and day_end_repid != end_day:
-            raise ValueError('the day was chosen incorrectly')
+        if day_end_repid != date(year=1991, month=12, day=26):
+            if day_end_repid and (day_end_repid < start_day or day_end_repid < end_day):
+                raise ValueError('the day was chosen incorrectly')
 
-        if status_repid_day and day_end_repid == end_day:
-            raise ValueError('the day was chosen incorrectly')
+            if not status_repid_day and day_end_repid != end_day:
+                raise ValueError('the day was chosen incorrectly')
 
-        if start_time < end_time and start_day != end_day:
-            if status_repid_day and len(weekday_list) == 0:
-                raise ValueError('the flag is specified incorrectly')
+            if status_repid_day and day_end_repid == end_day:
+                raise ValueError('the day was chosen incorrectly')
 
-            if status_repid_day and len(weekday_list) != 0:
-                last_day = -1
-                for one_day in weekday_list:
-                    if one_day -1 == last_day:
-                        raise ValueError('the flag is specified incorrectly')
-                    else:
-                        last_day = one_day
+            if start_time < end_time and start_day != end_day:
+                if status_repid_day and len(weekday_list) == 0:
+                    raise ValueError('the flag is specified incorrectly')
+        else:
+            values["day_end_repid"] = None
 
         return values
 

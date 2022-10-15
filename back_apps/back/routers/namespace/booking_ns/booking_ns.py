@@ -20,11 +20,11 @@ class TimeFormat(fields.Raw):
 
 
 booking_inset = booking.model('BookingInsert', {
-    "time_start": TimeFormat(required=True, description='Time in HH:MM', example='13:37'),
-    "time_end": TimeFormat(description='Time in HH:MM', example='02:28'),
+    "booking_time_start": TimeFormat(required=True, description='Time in HH:MM', example='13:37'),
+    "booking_time_end": TimeFormat(description='Time in HH:MM', example='02:28'),
     "event_setting_id": fields.Integer(description='fk event table', required=True),
-    "day_start": fields.Date(example='1971-06-28'),
-    "day_end": fields.Date(example='1971-06-28'),
+    "booking_day_start": fields.Date(example='1971-06-28'),
+    "booking_day_end": fields.Date(example='1971-06-28'),
     "service_id": fields.Integer(description='fk service table', required=True),
     "staff_id": fields.Integer(description='fk staff table', required=True),
     "client_id": fields.Integer(description='fk client table', required=True)

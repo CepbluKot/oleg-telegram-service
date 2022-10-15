@@ -6,11 +6,11 @@ from ..service_ns.queries import check_exit_service as verify_exit_service
 
 
 class BookingValidate(BaseModel):
-    time_start: time
-    time_end: time
+    booking_time_start: time
+    booking_time_end: time
     event_setting_id: conint(ge=1)
-    day_start: date
-    day_end: date
+    booking_day_start: date
+    booking_day_end: date
     service_id: conint(ge=1)
     staff_id: int
     client_id: conint(ge=1)
@@ -62,7 +62,6 @@ def orjson_dumps(v, *, default):
 
 class FreedomBooking(BaseModel):
     day: date
-    event: str
     intervals: List[List[time]]
 
     # class Config:
