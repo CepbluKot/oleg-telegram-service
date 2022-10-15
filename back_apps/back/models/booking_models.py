@@ -286,7 +286,7 @@ class EventDay(db.Model):
         self.save_to_db()
 
     def __repr__(self):
-        return f"EvevntDay ('{self.day_start}', '{self.day_end}')"
+        return f"EvevntDay ('{self.day_start}', '{self.day_end}', {self.event_setting_id}')"
 
     @classmethod
     def find_by_event_setting_id(cls, event_id_) -> 'List[EventDay]':
@@ -307,17 +307,23 @@ class EventDay(db.Model):
     def update_from_db(self):
         db.session.commit()
 
+    def delete_from_db(self):
+        db.session.delete(self)
+        db.session.commit()
+
 
 class AllBooking(db.Model):
     __tablename__ = 'all_booking'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    time_start = db.Column(db.Time)
-    time_end = db.Column(db.Time)
-    flags_transition = db.Column(db.Boolean, default=False, nullable=False)
+    booking_time_start = db.Column(db.Time, default=time(hour=0), nullable=False)
+    booking_time_end = db.Column(db.Time, default=time(hour=0), nullable=False)
+
+    booking_day_start = db.Column(db.Date, default=date(year=1, month=1, day=1), nullable=False)
+    booking_day_end = db.Column(db.Date, default=date(year=1, month=1, day=1), nullable=False)
 
     signup_event = db.Column(db.Integer, db.ForeignKey('event_day_company.id')) #день_записи
-    connect_event = db.relationship('EventDay', backref='event_booking', lazy='joined')
+    connect_event = db.relationship('EventDay', backref=db.backref('event_booking', cascade="all, delete-orphan"), lazy='joined')
 
     signup_user = db.Column(db.Integer, db.ForeignKey('users_this_company.id')) #человек который записался
     connect_user = db.relationship('CompanyUsers')

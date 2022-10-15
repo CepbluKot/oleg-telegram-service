@@ -10,6 +10,7 @@ class ServiceSchema(ma.SQLAlchemyAutoSchema):
         include_relationships = True
         exclude = ('service_ab', 'ssc_service_se', 'service_se', )
 
+
 class ServiceStaffSchema(ma.SQLAlchemyAutoSchema):
     """Дата класс сервиса"""
     class Meta:
