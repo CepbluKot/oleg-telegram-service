@@ -4,7 +4,7 @@ from datetime import time, datetime
 from pydantic import ValidationError
 
 from sqlalchemy.exc import IntegrityError
-from .queries import get_indo_calendar, get_all_event, find_freedom_booking
+from .queries import get_all_event, find_freedom_booking
 from ....models.booking_models import AllBooking
 from .validate import FilterBooking as Filter, BookingValidate
 
@@ -22,7 +22,7 @@ class TimeFormat(fields.Raw):
 booking_inset = booking.model('BookingInsert', {
     "booking_time_start": TimeFormat(required=True, description='Time in HH:MM', example='13:37'),
     "booking_time_end": TimeFormat(description='Time in HH:MM', example='02:28'),
-    "event_setting_id": fields.Integer(description='fk event table', required=True),
+    "event_day_id": fields.Integer(description='fk event table', required=True),
     "booking_day_start": fields.Date(example='1971-06-28'),
     "booking_day_end": fields.Date(example='1971-06-28'),
     "service_id": fields.Integer(description='fk service table', required=True),
@@ -51,6 +51,7 @@ class Booking(Resource):
         try:
             new_booking_start = AllBooking(event_setting_id=obj_booking.event_setting_id,
                                            day=obj_booking.day_start,
+                                           event_day_id=obj_booking.event_day_id,
                                            service_id=obj_booking.service_id,
                                            time_start=obj_booking.time_start,
                                            time_end=obj_booking.time_end,
@@ -59,6 +60,7 @@ class Booking(Resource):
             if obj_booking.day_end != obj_booking.day_start:
                  new_booking_end = AllBooking(event_setting_id=obj_booking.event_setting_id,
                                               day=obj_booking.day_end,
+                                              event_day_id=obj_booking.event_day_id,
                                               service_id=obj_booking.service_id,
                                               time_start=obj_booking.time_start,
                                               time_end=obj_booking.time_end,
@@ -105,27 +107,6 @@ booking_filter = booking.model('BookingFilter', {
 #     def post(self):
 #         add_filter = Filter(**request.get_json())
 #         res_data = get_filter_booking(add_filter)
-
-@booking.route('/calendar')
-class CalendarBooking(Resource):
-    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
-    @booking.doc(security='apikey')
-    @token_required
-    @booking.doc(params={'cal_date': 'date format 2022-05-27'})
-    def get(self):
-        parser_booking = reqparse.RequestParser()
-        parser_booking.add_argument("cal_date", type=str)
-
-        args = parser_booking.parse_args()
-
-        try:
-            cal_date = datetime.strptime(args["cal_date"], '%Y-%m-%d').date()
-        except ValueError:
-            return {"Error": "not correct data-format in query"}, 404
-
-        calendar_date = Filter()
-        calendar_date.this_date_filter = cal_date
-        return jsonify(get_indo_calendar(calendar_date)), 200
 
 
 freedom_booking = booking.model('FreedomBooking', {

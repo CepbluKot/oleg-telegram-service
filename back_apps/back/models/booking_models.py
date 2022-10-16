@@ -1,6 +1,6 @@
 from setting_web import db
 from sqlalchemy.exc import PendingRollbackError, IntegrityError
-from datetime import timedelta, date, time
+from datetime import timedelta, date, time, datetime
 from calendar import weekday
 from typing import List
 import rapidjson
@@ -154,7 +154,7 @@ class EventSetting(db.Model):
 
     def __init__(self, **kwargs):
         try:
-            self.name_event = kwargs['name_event']
+            self.name_event = kwargs['ame_event']
             self.day_start_g = kwargs['day_start_g']
             self.day_end_g = kwargs['day_end_g']
             self.event_time_start = kwargs['event_time_start']
@@ -335,22 +335,18 @@ class AllBooking(db.Model):
     connect_staff = db.relationship('MyStaff')
     comment = db.Column(db.TEXT)
 
-    def __init__(self, event_setting_id, day, client_id, service_id, time_start, time_end, staff_id=0):
+    def __init__(self, event_day_id, client_id, service_id, time_start, time_end, staff_id=0):
+        self.signup_event = event_day_id
         self.signup_service = service_id
         self.signup_user = client_id
         self.signup_staff = staff_id
         self.time_start = time_start
         self.time_end = time_end
 
-        info_day = EventDay.find_by_event_setting_id_and_day(event_setting_id, day)
-
-        if info_day:
-            if not self.find_exists_booking(info_day.id, client_id, staff_id, time_start, time_end):
-                self.signup_event = info_day.id
-            try:
-                self.save_to_db()
-            except IntegrityError:
-                db.session.rollback()
+        try:
+            self.save_to_db()
+        except IntegrityError:
+            db.session.rollback()
 
     def __repr__(self):
         return f"AllBooking ('{self.connect_event}')"
@@ -360,7 +356,7 @@ class AllBooking(db.Model):
         if type(event_id) == list:
             return cls.query.filter(cls.signup_event.in_(event_id))
         elif type(event_id) == int:
-            return cls.query.filter(cls.signup_event == event_id).first()
+            return cls.query.filter(cls.signup_event == event_id)
 
     @classmethod
     def find_exists_booking(cls, event_day_id, client_id, staff_id, time_start, time_end):
@@ -416,12 +412,25 @@ class ServiceEvent(db.Model):
         return cls.query.filter(db.and_(cls.service_id == find_service, cls.event_id == event_id)).first()
 
     @classmethod
-    def event_search_by_service(cls, service_name):
+    def event_setting_search_by_service(cls, service_name):
         find_service = MyService.find_by_name(service_name)
         try:
-            # return cls.query.filter(db.and_(cls.service_id == find_service.id)).options(db.load_only(cls.event_id)).all()
             return cls.query.filter(cls.service_id == find_service.id).all()
+        except AttributeError:
+            return None
 
+    @classmethod
+    def event_day_search_by_service(cls, service_name):
+        find_service = MyService.find_by_name(service_name)
+        try:
+            now_date = datetime.now()
+            this_day = date(year=now_date.year, month=now_date.month, day=now_date.day)
+
+            return db.session.query(cls.event_id, cls.service_id, MyService.duration, EventSetting.name_event, EventDay). \
+                join(MyService, cls.service_id == MyService.id). \
+                join(EventDay, cls.event_id == EventDay.event_setting_id).\
+                join(EventSetting, cls.event_id == EventSetting.id).\
+                filter(db.and_(cls.service_id == find_service.id, EventDay.day_end > date(year=2020, month=1, day=1))).all()
         except AttributeError:
             return None
 
