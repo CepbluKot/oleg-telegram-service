@@ -8,7 +8,7 @@ from ..service_ns.queries import check_exit_service as verify_exit_service
 class BookingValidate(BaseModel):
     booking_time_start: time
     booking_time_end: time
-    event_setting_id: conint(ge=1)
+    event_day_id: conint(ge=1)
     booking_day_start: date
     booking_day_end: date
     service_id: conint(ge=1)
@@ -34,11 +34,6 @@ class BookingValidate(BaseModel):
         return values
 
 
-class AnswerCalendar (BaseModel):
-    day: date
-    event_day: list
-
-
 class FilterClientBooking(BaseModel):
     name: Optional[List] = None
     tg_id: Optional[List] = None
@@ -62,7 +57,9 @@ def orjson_dumps(v, *, default):
 
 class FreedomBooking(BaseModel):
     day: date
-    intervals: List[List[time]]
+    intervals: Optional[List[List[time]]] = None
+    id_event: int
+    name_event: str
 
     # class Config:
     #     json_loads = orjson.loads

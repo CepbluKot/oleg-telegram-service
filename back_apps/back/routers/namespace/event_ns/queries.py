@@ -3,7 +3,7 @@ from ....models.booking_models import *
 from calendar import Calendar
 from datetime import datetime
 
-from .schema import ServiceEvent, EventSettingSchema
+from .schema import ServiceEvent, EventSettingSchema, EventDayCorrectDateSchema
 from .validate import FilterEvent as Filter
 
 now_date = datetime.now()
@@ -28,6 +28,27 @@ def all_working_date():
     api_all_work_date = EventSettingSchema(many=True)
 
     return api_all_work_date.dump(all_date)
+
+def find_booking_this_day(dat: date):
+    all_booking_service = EventDay.query
+    between_date_start = EventDay.day_start.between(dat, dat)
+    between_date_end = EventDay.day_end.between(dat, dat)
+
+    res_query_sql = all_booking_service.filter(db.or_(between_date_start, between_date_end))
+    res_query = res_query_sql.subquery() # фильтрация для дней
+
+    cs_start = db.case([(db.and_(res_query.c.day_end == dat, res_query.c.day_start != res_query.c.day_end), time(hour=0)),
+                        (db.and_(res_query.c.day_end < dat, res_query.c.day_start > dat), time(hour=0))],
+                       else_=res_query.c.event_time_start).label("correct_time_start")
+
+    cs_end = db.case([(db.and_(res_query.c.day_start == dat, res_query.c.day_start != res_query.c.day_end), time(hour=23, minute=59)),
+                      (db.and_(res_query.c.day_end < dat, res_query.c.day_start > dat), time(hour=23, minute=59))],
+                     else_=res_query.c.event_time_end).label("correct_time_end")
+
+    res_query = db.session.query(res_query, EventDay, cs_start, cs_end).join(EventDay, res_query.c.id == EventDay.id)
+
+    api_all_booking_schema = EventDayCorrectDateSchema(many=True)
+    return api_all_booking_schema.dump(res_query)
 
 
 def get_filter_work_day(filter_event: Filter):
@@ -56,25 +77,6 @@ def get_filter_work_day(filter_event: Filter):
     return api_all_work_date.dump(this_day)
 
 
-def find_boundaries_week(day):
-    """Поиск начала и конца недели"""
-    mycal = cl.monthdatescalendar(day.year, day.month)
-    start_end_week = [] #beginning and end of the week
-    all_week = [] #the whole week
-
-    for week in mycal:
-        if day in week:
-            start_end_week.append(week[0])
-            start_end_week.append(week[-1])
-
-            all_week = week
-            # if start_end_week not in day:
-            #     day.append(start_end_week)
-            break
-
-    return start_end_week, all_week
-
-
 def check_exit_event(this_ck_date):
     """Проверка на существования услуги в эту дату"""
     ck_all_date = _base_query()
@@ -89,13 +91,7 @@ def weeks_in_all_event(name_service=None):
     weeks_day = []
 
     for work_day in all_data:
-        print(work_day, work_day.name_service)
         if work_day.name_service == name_service and work_day.day not in weeks_day:
             weeks_day.append(work_day.day)
 
     return weeks_day
-
-
-# 1. Редактированик описания
-# 2. Редактирование повторений
-# 3. Редактирование одного и вынос одного дня

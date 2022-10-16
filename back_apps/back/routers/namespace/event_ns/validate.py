@@ -4,6 +4,11 @@ from typing import Optional, List, TypedDict, Dict
 from datetime import date, time, datetime, timedelta
 
 
+class AnswerCalendar (BaseModel):
+    day: date
+    event_day: list
+
+
 class TimeServices(BaseModel):
     start_time: time
     end_time: time

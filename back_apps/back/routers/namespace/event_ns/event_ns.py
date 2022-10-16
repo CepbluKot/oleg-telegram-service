@@ -9,11 +9,10 @@ from setting_web import token_required
 from .validate import ValidateEvent, WindowDataService
 from .queries import all_working_date
 from ....models.booking_models import EventSetting, ServiceEvent, MyService, EventDay
+from .logical_functions import get_indo_calendar
 
 from .schema import EventSettingSchema
-
-from ..booking_ns.queries import get_indo_calendar
-from ..booking_ns.validate import FilterBooking as Filter
+from datetime import datetime
 
 event = Namespace('event', 'This-Event_API', validate=True, authorizations=head_conf.auth_setting_swagger)
 
@@ -117,9 +116,7 @@ class EventApi(Resource):
 
             db.session.add_all(object_connect)
 
-            calendar_date = Filter()
-            calendar_date.this_date_filter = find_new_event.day_start_g
-            return jsonify(get_indo_calendar(calendar_date)), 200
+            return jsonify(get_indo_calendar(find_new_event.day_start_g)), 200
         else:
             return {"message": "DONT ADD EVENT"}, 404
 
@@ -157,6 +154,27 @@ class EventApi(Resource):
 #
 #
 #         print(event_set_id, new_ev)
+
+
+@event.route('/calendar')
+class CalendarEvent(Resource):
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @event.doc(security='apikey')
+    @token_required
+    @event.doc(params={'cal_date': 'date format 2022-05-27'})
+    def get(self):
+        parser_booking = reqparse.RequestParser()
+        parser_booking.add_argument("cal_date", type=str)
+
+        args = parser_booking.parse_args()
+
+        try:
+            cal_date = datetime.strptime(args["cal_date"], '%Y-%m-%d').date()
+        except ValueError:
+            return {"Error": "not correct data-format in query"}, 404
+
+        return jsonify(get_indo_calendar(cal_date)), 200
+
 
 
 @event.route('/event_day/')
