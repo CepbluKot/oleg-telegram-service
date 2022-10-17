@@ -47,6 +47,7 @@ class ServiceEventSchema(ma.SQLAlchemyAutoSchema):
     max_booking = fields.Integer(attribute='service_connect.max_booking')
     price_service = fields.Float(attribute='service_connect.price_service')
     duration = fields.Time(attribute='service_connect.duration')
+    name_service = fields.String(attribute='service_connect.name_service')
 
     class Meta:
         model = ServiceEvent

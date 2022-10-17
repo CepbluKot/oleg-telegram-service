@@ -80,6 +80,7 @@ class EventApi(Resource):
         except ValidationError as e:
             return {"message": e.json()}, 404
         try:
+            print(new_event)
             find_new_event = EventSetting(day_start_g=new_event.day_start,
                                         day_end_g=new_event.day_end,
                                         event_time_start=new_event.start_event,
@@ -179,6 +180,9 @@ class CalendarEvent(Resource):
 
 @event.route('/event_day/')
 class EventDayApi(Resource):
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @event.doc(security='apikey')
+    @token_required
     @event.doc(params={'event_day_id': {'description': 'id конкретного дня события', 'type': 'int'}})
     def delete(self):
         event_url_parse = reqparse.RequestParser()

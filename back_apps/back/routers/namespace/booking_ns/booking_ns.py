@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from .queries import get_all_event, find_freedom_booking
 from ....models.booking_models import AllBooking
 from .validate import FilterBooking as Filter, BookingValidate
+from .schema import InfoBookingSchema
 
 from setting_web import cross_origin, token_required
 
@@ -31,15 +32,16 @@ booking_inset = booking.model('BookingInsert', {
 })
 
 
-@cross_origin(origins=["*"], supports_credentials=True)
 @booking.route('')
 class Booking(Resource):
     @booking.doc(security='apikey')
     @token_required
+    @cross_origin(origins=["*"], supports_credentials=True)
     def get(self):
-        return get_all_event(), 200
+        return jsonify(get_all_event()), 200
 
     @booking.doc(security='apikey')
+    @cross_origin(origins=["*"], supports_credentials=True)
     @token_required
     @booking.expect(booking_inset)
     def post(self):
@@ -48,33 +50,27 @@ class Booking(Resource):
         except ValidationError as e:
             return {'message': e.json()}, 401
 
+        print(obj_booking.booking_time_end, obj_booking.booking_time_start)
         try:
-            new_booking_start = AllBooking(event_setting_id=obj_booking.event_setting_id,
-                                           day=obj_booking.day_start,
+            new_booking_start = AllBooking(day_start=obj_booking.booking_day_start,
+                                           day_end=obj_booking.booking_day_end,
                                            event_day_id=obj_booking.event_day_id,
                                            service_id=obj_booking.service_id,
-                                           time_start=obj_booking.time_start,
-                                           time_end=obj_booking.time_end,
+                                           time_start=obj_booking.booking_time_start,
+                                           time_end=obj_booking.booking_time_end,
                                            client_id=obj_booking.client_id)
 
-            if obj_booking.day_end != obj_booking.day_start:
-                 new_booking_end = AllBooking(event_setting_id=obj_booking.event_setting_id,
-                                              day=obj_booking.day_end,
-                                              event_day_id=obj_booking.event_day_id,
-                                              service_id=obj_booking.service_id,
-                                              time_start=obj_booking.time_start,
-                                              time_end=obj_booking.time_end,
-                                              client_id=obj_booking.client_id)
         except IntegrityError:
             return {'message': "not correct data"}, 401
 
-        if new_booking_start is None: #потестить
+        if new_booking_start is None:
             return {'message': "not correct data"}, 401
         return {'message': "add new booking"}, 200
 
     @booking.doc(security='apikey')
     @token_required
     @booking.doc(params={'id_bookings': 'id'})
+    @cross_origin(origins=["*"], supports_credentials=True)
     def delete(self):
         parser_booking = reqparse.RequestParser()
         parser_booking.add_argument("id_bookings", type=int)
@@ -100,23 +96,38 @@ booking_filter = booking.model('BookingFilter', {
 })
 
 
-# @booking.route('/filter')
-# class FilterBooking(Resource):
-#
-#     @booking.expect(booking_filter)
-#     def post(self):
-#         add_filter = Filter(**request.get_json())
-#         res_data = get_filter_booking(add_filter)
-
-
 freedom_booking = booking.model('FreedomBooking', {
     "name_service": fields.String(description='search for a free reservation by event name')
 })
 
 
+@booking.route('/my_booking')
+class MyInfoBooking(Resource):
+    @booking.doc(security='apikey')
+    @token_required
+    @cross_origin(origins=["*"], supports_credentials=True)
+    @booking.doc(params={"id_client": "id одного юзера"})
+    def get(self):
+        booking_url_pars = reqparse.RequestParser()
+        booking_url_pars.add_argument("id_client", type=int)
+
+        try:
+            id_client = booking_url_pars.parse_args()['id_client']
+        except KeyError:
+            return {"message": "not correct input url"}, 400
+
+        sql_my_booking = AllBooking.find_by_client_id(id_client)
+        api_booking = InfoBookingSchema(many=True)
+
+        return jsonify(api_booking.dump(sql_my_booking)), 200
+
+
 @booking.route('/search')
 class BookingSearch(Resource):
     @booking.expect(freedom_booking)
+    @booking.doc(security='apikey')
+    @token_required
+    @cross_origin(origins=["*"], supports_credentials=True)
     def post(self):
         name_service = request.get_json()['name_service']
-        return find_freedom_booking(name_service)
+        return jsonify(find_freedom_booking(name_service)), 200

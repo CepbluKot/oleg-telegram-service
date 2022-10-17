@@ -30,12 +30,12 @@ def get_indo_calendar(cor_date: date):
 
     answer_calendar = []
     start_end_weeks, all_week = find_boundaries_week(cor_date)
-    try:
-        for one_day in all_week:
-            one_answer_booking = AnswerCalendar(day=one_day.strftime('%Y-%m-%d'),
-                                                event_day=find_booking_this_day(one_day))
+    # try:
+    for one_day in all_week:
+        one_answer_booking = AnswerCalendar(day=one_day.strftime('%Y-%m-%d'),
+                                            event_day=find_booking_this_day(one_day))
 
-            answer_calendar.append(json.loads(one_answer_booking.json()))
-    except:
-        return {"message": "not can create calendar, maybe not valid data"}, 404
-    return answer_calendar, 200
+        answer_calendar.append(json.loads(one_answer_booking.json()))
+    # except:
+    #     return {"message": "not can create calendar, maybe not valid data"}, 404
+    return answer_calendar

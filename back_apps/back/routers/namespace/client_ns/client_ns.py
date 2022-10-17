@@ -1,6 +1,9 @@
-from flask_restx import Resource, Namespace, fields
-from flask import request
+from flask_restx import Resource, Namespace, fields, reqparse
+from flask import request, jsonify
 from pydantic import ValidationError
+from setting_web import cross_origin, token_required
+from sqlalchemy.exc import IntegrityError, PendingRollbackError
+
 
 from ....models.booking_models import CompanyUsers
 from .validate import RegisterClient, FilterClient as Filter
@@ -13,21 +16,6 @@ client_info = client.model('Data Info Client Company', {
     "phone": fields.String(),
     "name": fields.String()
 })
-
-"""Функции выносятся вне класса, для общения с  тг ботом"""
-
-
-def add_client(new_cl: dict):
-    try:
-        new_client = RegisterClient(**new_cl)
-    except ValidationError as e:
-        return {"message": e.json()}, 404
-
-    CompanyUsers(new_name=new_client.name,
-                 tg_id=new_client.tg_id,
-                 phone_num=new_client.phone)
-
-    return get_filter_client(Filter(tg_id=[new_client.tg_id])), 200
 
 
 def update_client(upd_cl: dict):
@@ -52,23 +40,86 @@ def update_client(upd_cl: dict):
 
 @client.route('')
 class Client(Resource):
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @client.doc(security='apikey')
+    @token_required
     def get(self):
-        return all_client()
+        return jsonify(all_client())
 
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @client.doc(security='apikey')
+    @token_required
     @client.expect(client_info)
     def post(self):
-        return add_client(request.get_json())
+        try:
+            new_client = RegisterClient(**request.get_json())
+        except ValidationError as e:
+            return {"message": e.json()}, 404
 
+        try:
+            CompanyUsers(new_name=new_client.name,
+                         tg_id=new_client.tg_id,
+                         phone_num=new_client.phone)
+
+            req_data = get_filter_client(Filter(tg_id=[new_client.tg_id]))
+
+            if req_data:
+                return jsonify(req_data), 200
+            else:
+                return {"message": "maybe don't correct input data"}, 400
+
+        except PendingRollbackError:
+            return {"message": "this event alredy exist"}, 401
+        except IntegrityError:
+            return {"message": "this event alredy exist"}, 401
+
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @client.doc(security='apikey')
+    @token_required
     @client.expect(client_info)
     def put(self):
-        return update_client(request.get_json())
+        try:
+            upd_client = RegisterClient(**request.get_json())
+        except ValidationError as e:
+            return {"message": e.json()}, 404
+
+        find_client = CompanyUsers.find_by_tg_id(upd_client.tg_id)
+        if find_client:
+            if upd_client.name is not None:
+                find_client.name_client = upd_client.name
+            elif upd_client.phone is not None:
+                find_client.phone_num = upd_client.phone
+
+            find_client.update_from_db()
+            return jsonify(get_filter_client(Filter(tg_id=[upd_client.tg_id]))), 200
+        else:
+            return {"message": "NOT FIND USERS"}, 404
 
 
-@client.route('/int:<tg_id>')
-@client.doc(params={'tg_id': 'user tg id'})
+@client.route('/info_client')
 class OneClient(Resource):
-    def get(self, tg_id):
-        return get_filter_client(Filter(tg_id=[int(tg_id)])), 200
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @client.doc(security='apikey')
+    @client.doc(params={'tg_id': 'telegram id'})
+    @token_required
+    def get(self):
+        client_url_parse = reqparse.RequestParser()
+        client_url_parse.add_argument('tg_id', type=int)
+
+        tg_id: int = client_url_parse.parse_args()['tg_id']
+        if tg_id:
+            try:
+                req_data = get_filter_client(Filter(tg_id=[int(tg_id)]))
+
+                if len(req_data) == 0:
+                    return {"message": "not find tg_id"}, 404
+
+                return jsonify(req_data), 200
+
+            except ValueError:
+                return {"message": "not correct data"}, 401
+        else:
+            return {"message": "not correct input data"}, 400
 
 
 client_filter_booking = client.model('FilterClient', {
@@ -80,12 +131,15 @@ client_filter_booking = client.model('FilterClient', {
 
 @client.route('/filter')
 class ClientFilter(Resource):
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @client.doc(security='apikey')
+    @token_required
     @client.expect(client_filter_booking)
     def post(self):
         try:
             filter_data = Filter(**request.get_json())
         except ValidationError as e:
-            return {"messenge": e.json()}, 404
+            return {"messange": e.json()}, 404
 
         return get_filter_client(filter_data)
 
