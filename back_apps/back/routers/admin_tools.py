@@ -2,7 +2,6 @@ from setting_web import admin
 from flask_admin.contrib.sqla import ModelView
 from flask import Response
 from werkzeug.exceptions import HTTPException
-
 from ..models.booking_models import *
 
 

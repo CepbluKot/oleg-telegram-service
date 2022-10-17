@@ -8,20 +8,20 @@ from ..service_ns.queries import check_exit_service as verify_exit_service
 class BookingValidate(BaseModel):
     booking_time_start: time
     booking_time_end: time
-    event_day_id: conint(ge=1)
+    event_day_id: int
     booking_day_start: date
     booking_day_end: date
-    service_id: conint(ge=1)
+    service_id: int
     staff_id: int
-    client_id: conint(ge=1)
+    client_id: int
 
     @root_validator(allow_reuse=True)
     def check_reliability_date(cls, values):
-        if ('time_start' not in values) or ('time_end' not in values) or ('day_end' not in values) or ('day_start' not in values):
+        if ('booking_time_start' not in values) or ('booking_time_end' not in values) or ('booking_day_end' not in values) or ('booking_day_start' not in values):
             raise ValueError('error typing time')
 
-        time_start, time_end, day_start, day_end = values.get('time_start'), values.get('time_end'), \
-                                         values.get('day_start'), values.get('day_end')
+        time_start, time_end, day_start, day_end = values.get('booking_time_start'), values.get('booking_time_end'), \
+                                         values.get('booking_day_start'), values.get('booking_day_end')
 
         if day_start > day_end:
             raise ValueError('start event value less than end event value')

@@ -29,6 +29,7 @@ def all_working_date():
 
     return api_all_work_date.dump(all_date)
 
+
 def find_booking_this_day(dat: date):
     all_booking_service = EventDay.query
     between_date_start = EventDay.day_start.between(dat, dat)
@@ -45,7 +46,10 @@ def find_booking_this_day(dat: date):
                       (db.and_(res_query.c.day_end < dat, res_query.c.day_start > dat), time(hour=23, minute=59))],
                      else_=res_query.c.event_time_end).label("correct_time_end")
 
-    res_query = db.session.query(res_query, EventDay, cs_start, cs_end).join(EventDay, res_query.c.id == EventDay.id)
+    res_query = db.session.query(res_query, EventDay, cs_start, cs_end). \
+        join(EventDay, res_query.c.id == EventDay.id).\
+        join(AllBooking, EventDay.id == AllBooking.signup_event, isouter=True).\
+        order_by(db.asc(AllBooking.booking_time_start))
 
     api_all_booking_schema = EventDayCorrectDateSchema(many=True)
     return api_all_booking_schema.dump(res_query)

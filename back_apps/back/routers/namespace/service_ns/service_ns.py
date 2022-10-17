@@ -1,17 +1,16 @@
 from flask import request, jsonify
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields, reqparse
 from pydantic import ValidationError
 from datetime import time
 from sqlalchemy.exc import IntegrityError
 
+
+from setting_web import cross_origin, token_required
 from ....models.booking_models import MyService, ServiceStaffConnect
 from .queries import all_service, get_filter_services
 from .validate import ValidateService as ValidateService
 from .validate import FilterServicesStaff as Filter
 from .validate import AllConnectServiceStaff as ConnectStaffService
-
-#monolit
-from setting_web import cross_origin
 
 
 class TimeFormat(fields.Raw):
@@ -72,12 +71,27 @@ class AllService(Resource):
         return jsonify({'message': 'successful addition'}), 200
 
 
-@service.route('/string:<service_name>')
+@service.route('/one_service')
 @service.doc(params={'service_name': 'name_service'})
 class OneService(Resource):
-    def get(self, service_name):
-        return get_filter_services(Filter(name_services=[service_name])), 200
 
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @service.doc(security='apikey')
+    @token_required
+    def get(self, service_name):
+        service_url_parser = reqparse.RequestParser()
+        service_url_parser.add_argument("service_name", type=str)
+
+        service_name = service_url_parser.parse_args()["service_name"]
+
+        if service_name:
+            return get_filter_services(Filter(name_services=[service_name])), 200
+        else:
+            return {"message": "not input"}, 400
+
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @service.doc(security='apikey')
+    @token_required
     @service.expect(add_service)
     def put(self, service_name):
         find_ser = MyService.find_by_name(service_name)
@@ -97,6 +111,9 @@ class OneService(Resource):
 
         return get_filter_services(Filter(name_services=[service_name])), 200
 
+    @cross_origin(origins=["*"], supports_credentials=True, automatic_options=False)
+    @service.doc(security='apikey')
+    @token_required
     def delete(self, service_name=None):
         if service_name is not None:
             find_service = MyService.find_by_name(service_name)

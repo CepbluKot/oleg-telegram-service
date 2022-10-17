@@ -108,57 +108,57 @@ def find_freedom_booking(name_service):
     answer = []
     now_date = datetime.now()
     this_day = date(year=now_date.year, month=now_date.month, day=now_date.day)
+    try:
+        for days_query in con_ser_event:
+            info_event_day: EventDay = days_query.EventDay
+            dur_service = days_query.duration
 
-    for days_query in con_ser_event:
-        info_event_day: EventDay = days_query.EventDay
-        dur_service = days_query.duration
-
-        all_booking_this_ev = AllBooking.find_booking_by_event_id(info_event_day.id)
-        if all_booking_this_ev:
-            all_booking_this_ev = all_booking_this_ev.all()  #проверка на пустоту запроса
-        else:
-            all_booking_this_ev = []
+            all_booking_this_ev = AllBooking.find_booking_by_event_id(info_event_day.id)
+            if all_booking_this_ev:
+                all_booking_this_ev = all_booking_this_ev.all()  #проверка на пустоту запроса
+            else:
+                all_booking_this_ev = []
 
 
-        if info_event_day.day_start < info_event_day.day_end: #если событие разделено на несколько дней
-            start_iteration_day = info_event_day.day_start
-            # if this_day > info_event_day.day_start: #корректирует дату, событие может уже начаться настоящий момент времени
-            #     start_iteration_day = this_day
+            if info_event_day.day_start < info_event_day.day_end: #если событие разделено на несколько дней
+                start_iteration_day = info_event_day.day_start
+                # if this_day > info_event_day.day_start: #корректирует дату, событие может уже начаться настоящий момент времени
+                #     start_iteration_day = this_day
 
-            delta_days = info_event_day.day_end - start_iteration_day
-            for iter_day in range(delta_days.days + 1):
-                intervals_list = start_intervals_day(info_event_day, tracer_day=start_iteration_day + timedelta(days=iter_day))
+                delta_days = info_event_day.day_end - start_iteration_day
+                for iter_day in range(delta_days.days + 1):
+                    intervals_list = start_intervals_day(info_event_day, tracer_day=start_iteration_day + timedelta(days=iter_day))
 
-                interval_json = {"day": start_iteration_day + timedelta(days=iter_day),
+                    interval_json = {"day": start_iteration_day + timedelta(days=iter_day),
+                                     "id_event": info_event_day.id,
+                                     "name_event": days_query.name_event,
+                                     "intervals": intervals_list}
+
+                    intervals_list = find_intervals(intervals_list, all_booking_this_ev, start_iteration_day + timedelta(days=iter_day))
+                    intervals_list = fraction_window(intervals_list, dur_service)
+
+                    interval_json["intervals"] = intervals_list #заполняем отсувствующие интервалы
+                    answer.append(interval_json)
+
+            else:
+                intervals_list = start_intervals_day(info_event_day)
+
+                interval_json = {"day": info_event_day.day_start,
                                  "id_event": info_event_day.id,
                                  "name_event": days_query.name_event,
                                  "intervals": intervals_list}
 
-                intervals_list = find_intervals(intervals_list, all_booking_this_ev, start_iteration_day + timedelta(days=iter_day))
+                intervals_list = find_intervals(intervals_list, all_booking_this_ev, info_event_day.day_start)
                 intervals_list = fraction_window(intervals_list, dur_service)
 
-                interval_json["intervals"] = intervals_list #заполняем отсувствующие интервалы
+                interval_json["intervals"] = intervals_list
                 answer.append(interval_json)
 
-        else:
-            intervals_list = start_intervals_day(info_event_day)
-
-            interval_json = {"day": info_event_day.day_start,
-                             "id_event": info_event_day.id,
-                             "name_event": days_query.name_event,
-                             "intervals": intervals_list}
-
-            intervals_list = find_intervals(intervals_list, all_booking_this_ev, info_event_day.day_start)
-            intervals_list = fraction_window(intervals_list, dur_service)
-
-            interval_json["intervals"] = intervals_list
-            answer.append(interval_json)
-
-    new_answer = []
-    for one_window in answer:
-        new_answer.append(json.loads(FrBooking(**one_window).json()))
-    # except TypeError:
-    #     return {"message": "not find this service"}, 404
+        new_answer = []
+        for one_window in answer:
+            new_answer.append(json.loads(FrBooking(**one_window).json()))
+    except TypeError:
+        return {"message": "not find this service"}, 404
 
     return new_answer, 200
 

@@ -153,42 +153,43 @@ class EventSetting(db.Model):
     weekdays = db.Column(db.ARRAY(db.Integer), default=[])
 
     def __init__(self, **kwargs):
+        # try:
+
+        self.name_event = kwargs['name_event']
+        self.day_start_g = kwargs['day_start_g']
+        self.day_end_g = kwargs['day_end_g']
+        self.event_time_start = kwargs['event_time_start']
+        self.event_time_end = kwargs['event_time_end']
+
         try:
-            self.name_event = kwargs['ame_event']
-            self.day_start_g = kwargs['day_start_g']
-            self.day_end_g = kwargs['day_end_g']
-            self.event_time_start = kwargs['event_time_start']
-            self.event_time_end = kwargs['event_time_end']
-
-            try:
-                self.status_repid_day = kwargs['status_repid_day']
-            except KeyError:
-                print({'message': 'dont get status rapid day'})
-                raise ValueError
-
-            try:
-                self.day_end_rapid = kwargs['day_end_rapid']
-            except KeyError:
-                print({'message': 'dont get day_end_rapid'})
-                raise ValueError
-
-            try:
-                self.weekdays = kwargs['weekdays']
-            except KeyError:
-                print({'message': 'dont get weekdays'})
-                raise ValueError
-
-            try:
-                self.save_to_db()
-                self.create_days_event()
-            except PendingRollbackError:
-                db.session.roolback()
-                print({'message': 'dont pulling event_setting in database'})
-                raise ValueError
-
+            self.status_repid_day = kwargs['status_repid_day']
         except KeyError:
-            print({'message': 'dont create event'})
+            print({'message': 'dont get status rapid day'})
             raise ValueError
+
+        try:
+            self.day_end_rapid = kwargs['day_end_rapid']
+        except KeyError:
+            print({'message': 'dont get day_end_rapid'})
+            raise ValueError
+
+        try:
+            self.weekdays = kwargs['weekdays']
+        except KeyError:
+            print({'message': 'dont get weekdays'})
+            raise ValueError
+
+        try:
+            self.save_to_db()
+            self.create_days_event()
+        except PendingRollbackError:
+            db.session.roolback()
+            print({'message': 'dont pulling event_setting in database'})
+            raise ValueError
+
+        # except KeyError:
+        #     print({'message': 'dont create event'})
+        #     raise ValueError
 
     def __repr__(self):
         return f"EventSetting ('{self.name_event, self.day_start_g}')"
@@ -286,7 +287,7 @@ class EventDay(db.Model):
         self.save_to_db()
 
     def __repr__(self):
-        return f"EvevntDay ('{self.day_start}', '{self.day_end}', {self.event_setting_id}')"
+        return f"EvevntDay ('{self.day_start}', '{self.day_end}', event_setting: {self.event_setting_id}, my id: {self.id} ')"
 
     @classmethod
     def find_by_event_setting_id(cls, event_id_) -> 'List[EventDay]':
@@ -331,22 +332,26 @@ class AllBooking(db.Model):
     signup_service = db.Column(db.Integer, db.ForeignKey('myservice.id')) #услуга
     connect_service = db.relationship('MyService', backref='service_ab')
 
-    signup_staff = db.Column(db.Integer, db.ForeignKey('mystaff.id')) #тренер
-    connect_staff = db.relationship('MyStaff')
+    signup_staff = db.Column(db.Integer, db.ForeignKey('mystaff.id'), nullable=False) #тренер\
+    connect_staff = db.relationship('MyStaff', backref='staff_booking')
+
     comment = db.Column(db.TEXT)
 
-    def __init__(self, event_day_id, client_id, service_id, time_start, time_end, staff_id=0):
+    def __init__(self, event_day_id,  day_start, day_end, client_id, service_id, time_start, time_end, staff_id=1):
+        self.booking_day_start = day_start
+        self.booking_day_end = day_end
         self.signup_event = event_day_id
         self.signup_service = service_id
         self.signup_user = client_id
         self.signup_staff = staff_id
-        self.time_start = time_start
-        self.time_end = time_end
+        self.booking_time_start = time_start
+        self.booking_time_end = time_end
 
         try:
             self.save_to_db()
         except IntegrityError:
             db.session.rollback()
+            raise IntegrityError
 
     def __repr__(self):
         return f"AllBooking ('{self.connect_event}')"
@@ -365,6 +370,10 @@ class AllBooking(db.Model):
                                            cls.signup_staff == staff_id,
                                            cls.time_start == time_start,
                                            cls.time_end == time_end)) is not None
+
+    @classmethod
+    def find_by_client_id(cls, _client_id):
+        return cls.query.filter(cls.signup_user == _client_id)
 
     def save_to_db(self):
         db.session.add(self)
