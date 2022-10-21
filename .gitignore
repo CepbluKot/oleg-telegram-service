@@ -2,6 +2,9 @@ __pycache__
 .idea
 back_apps/back/.idea
 back_apps/back_users/.idea
+backup_db/connect_web.ini
+backup_db/.idea
+backup_db/env
 back_apps/back/env
 telegram_bots/config.json
 telegram_bots/bot_venv

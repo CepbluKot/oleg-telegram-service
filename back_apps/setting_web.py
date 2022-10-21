@@ -21,6 +21,7 @@ flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
 
 config = configparser.ConfigParser()
 config.read(os.path.abspath(os.path.dirname(__file__)) + '/conf_back.ini')
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 flask_app = Flask(__name__)
 
