@@ -2,16 +2,16 @@ version: '3.8'
 
 services:
   back:
-    image: tg_helper_back:latest
+    image: elissgood/tg_helper_back
     container_name: flask_build_app
-    command: >  
-         bash -c " flask db init
-         && flask db revision --rev-id  68a82f6ba8a3
-         && flask db migrate
-         && flask db upgrade
-         && flask run -h 0.0.0.0"
+    command: flask run -h 0.0.0.0 -p 5000
+#        bash -c "flask db revision --rev-id 305af916dde8
+#        && flask db migrate
+#        && flask db upgrade
+#        && flask run -h 0.0.0.0 -p 5000"
+#      flask db revision --rev-id 305af916dde8
     ports:
-      - 5000:5000
+      - 3000:5000
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:admin@db:5432/system_control
     depends_on:
@@ -24,9 +24,28 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=system_control
+
+  backups:
+    image: backup:latest
+    container_name: backups_container
+    command: bash ./backup_db/backup.sh
+    depends_on:
+      - db
+    environment:
+      - DB_HOSTNAME=db
+      - DB_PORT=5432
+      - DB_PASSWORD=admin
+      - DB_NAME=system_control
+      - DB_USER=postgres
+      - STATUS_DOWNLOUD_BACKUP=true
+      - DB_FILENAME_INSTALL=backup_DAY_TIME_2022-10-18____17-23-46
+      - STATUS_CREATE_BACKUP=true
+      - BACKUP_KEEP_SECONDS=10
+      - PGPASSWORD=admin
   nginx:
     image: nginx_help:latest
     ports:
       - 80:80
     depends_on:
       - back
+
