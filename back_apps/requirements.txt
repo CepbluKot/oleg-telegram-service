@@ -65,4 +65,6 @@ wcwidth==0.2.5
 Werkzeug==2.0.1
 wrapt==1.14.1
 WTForms==3.0.1
+yadisk==1.2.16
+yandex==0.0.2
 zipp==3.8.0
