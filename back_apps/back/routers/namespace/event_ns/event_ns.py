@@ -194,8 +194,10 @@ class EventDayApi(Resource):
         try:
             info_event_day = EventDay.find_by_event_day_id(event_day_id_=event_id_service)
             if info_event_day is not None:
-                 info_event_day.delete_from_db()
-                 return EventDay.find_by_event_day_id(event_day_id_=event_id_service), 200
+                cal_date = info_event_day.day_start
+
+                info_event_day.delete_from_db()
+                return jsonify(get_indo_calendar(cal_date)), 200
             else:
                 return {"message": "not find this event_day"}, 404
         except:
