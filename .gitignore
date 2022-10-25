@@ -15,6 +15,5 @@ back_apps/migrations
 gunicorn
 back_apps/conf_back.ini
 docker_doc/pg_db
-crt/olegbackend.key
-crt/olegbackend.key
 crt
+/crt/
