@@ -5,8 +5,8 @@ services:
     image: elissgood/tg_helper_back:latest
     container_name: flask_build_app
     command: flask run -h 0.0.0.0 -p 5000
-    ports:
-      - 3000:5000
+#    ports:
+#      - 3000:5000
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:admin@db:5432/system_control
     depends_on:
@@ -36,4 +36,14 @@ services:
      # - STATUS_CREATE_BACKUP=true
      # - BACKUP_KEEP_SECONDS=10
      - PGPASSWORD=admin
+
+  nginx:
+    image: nginx_help:latest
+    ports:
+      - 80:80
+      - 443:443
+#    command: openssl x509 -in /etc/nginx/ssl/olegbackend.crt -text -noout
+    depends_on:
+      - back
+
 
