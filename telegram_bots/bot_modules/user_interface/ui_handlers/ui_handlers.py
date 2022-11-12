@@ -3,13 +3,13 @@ import asyncio
 from aiogram import Dispatcher, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.types.web_app_info import WebAppInfo
-from bots import student_bot
+from bots import demo_bot
 import collections
-from bot_modules.special_functions.functions_for_text_interface import (
-    prepod_delete_previous_messages,
-    student_delete_previous_messages,
-    student_delete_previous_polls,
-)
+# from bot_modules.special_functions.functions_for_text_interface import (
+#     prepod_delete_previous_messages,
+#     student_delete_previous_messages,
+#     student_delete_previous_polls,
+# )
 from bot_modules.user_interface.ui_handlers.ui_handlers_interface import (
     PrepodHandlersStatusInterface,
     StudentHandlersStatusInterface,
@@ -51,9 +51,9 @@ class PrepodHandlersStatus(PrepodHandlersStatusInterface):
             ),
         )
 
-        await prepod_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=2
-        )
+        # await prepod_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=2
+        # )
 
     async def set_ui_type_text(self, call: types.CallbackQuery):
         await call.answer()
@@ -63,9 +63,9 @@ class PrepodHandlersStatus(PrepodHandlersStatusInterface):
             "Выбран текстовый интерфейс, для взаимодействия пользуйтесь командами"
         )
 
-        await prepod_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=2
-        )
+        # await prepod_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=2
+        # )
 
     async def display_user_status(self, message: types.Message):
         full_message = "Отправленные вами формы:"
@@ -130,9 +130,9 @@ class PrepodHandlersStatus(PrepodHandlersStatusInterface):
             ),
         )
 
-        await prepod_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=1
-        )
+        # await prepod_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=1
+        # )
 
     def wrong_interface_exceptions(self, message: types.Message):
         result = ui_repostiory_abs.get_users_ui(user_id=message.chat.id)
@@ -144,9 +144,9 @@ class PrepodHandlersStatus(PrepodHandlersStatusInterface):
     async def interface_not_selected(self, message: types.Message):
         answer = await message.answer("Выберите интерфейс - /start")
 
-        await prepod_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=1
-        )
+        # await prepod_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=1
+        # )
 
     def interface_not_selected_exceptions(self, message: types.Message):
         return not ui_repostiory_abs.check_is_user_selected_ui(user_id=message.chat.id)
@@ -167,7 +167,7 @@ class PrepodHandlersStatus(PrepodHandlersStatusInterface):
         dp.register_message_handler(
             self.display_user_status,
             lambda message: self.status_exceptions(message=message),
-            commands="status",
+            commands="status_for_creator",
         )
         dp.register_message_handler(
             self.get_form_result, lambda message: message.text.startswith("/getResult_")
@@ -204,9 +204,9 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
             ),
         )
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=2
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=2
+        # )
 
     async def set_ui_type_text(self, call: types.CallbackQuery):
         await call.answer()
@@ -216,9 +216,9 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
             "Выбран текстовый интерфейс, для взаимодействия пользуйтесь командами"
         )
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=2
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=2
+        # )
 
     async def display_user_status(self, message: types.Message):
         full_message = "Полученные формы:"
@@ -248,9 +248,9 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
 
         answer = await message.answer(full_message)
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=2
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=2
+        # )
 
     async def complete_form(self, message: types.Message):
         """Получает название формы, добавляет данные в forms_dispatcher,
@@ -265,9 +265,9 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
         )
 
         await self.go_cycle(message=message, type="launch_from_message_handler")
-        await student_delete_previous_messages(
-            last_message_to_delete=message, num_of_messages_to_delete=1, timer=False
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=message, num_of_messages_to_delete=1, timer=False
+        # )
 
     async def go_cycle(self, message, type: str):
         """Отсылает вопросы/ опросы из completing_forms_dispatcher при вызове"""
@@ -294,14 +294,14 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
             keyboard = types.InlineKeyboardMarkup(row_width=2)
             keyboard.add(*buttons)
 
-            await student_bot.send_message(
+            await demo_bot.send_message(
                 chat_id=user_id,
                 text="Форма пройдена, вы можете исправить ответы, по окончании нажмите на кнопку отправки формы",
                 reply_markup=keyboard,
             )
 
         elif dispatcher_data.current_question.question_type == "poll":
-            msg = await student_bot.send_poll(
+            msg = await demo_bot.send_poll(
                 chat_id=user_id,
                 question=dispatcher_data.current_question.question_text,
                 options=dispatcher_data.current_question.options,
@@ -312,7 +312,7 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
             )
 
         elif dispatcher_data.current_question.question_type == "msg":
-            msg = await student_bot.send_message(
+            msg = await demo_bot.send_message(
                 chat_id=user_id, text=dispatcher_data.current_question.question_text
             )
             completing_forms_dispatcher_abs.set_current_question_message_id(
@@ -345,6 +345,8 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
             sent_form_id=completed_form_sent_form_id
         )
 
+       
+
         if collections.Counter(
             completed_form_data.completed_users_ids
         ) == collections.Counter(completed_form_data.sent_to_users_ids):
@@ -352,6 +354,7 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
 
         await types.Message.edit_reply_markup(self=call.message, reply_markup=None)
         await call.message.reply("форма отправлена")
+        await call.message.answer(str(completed_form_data))
 
     def lambda_checker_poll(self, poll_answer: types.PollAnswer):
         """Проверяет принадлежит ли опрос выбранной форме"""
@@ -420,9 +423,9 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
     async def already_completed_message_reply(self, message: types.Message):
         await message.answer("Вы уже прошли данную форму")
 
-        await student_delete_previous_messages(
-            last_message_to_delete=message, num_of_messages_to_delete=1
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=message, num_of_messages_to_delete=1
+        # )
 
     async def wrong_interface(self, message: types.Message):
         answer = await message.answer(
@@ -434,9 +437,9 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
             ),
         )
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=1
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=1
+        # )
 
     def wrong_interface_exceptions(self, message: types.Message):
         result = ui_repostiory_abs.get_users_ui(user_id=message.chat.id)
@@ -447,9 +450,9 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
     async def interface_not_selected(self, message: types.Message):
         answer = await message.answer("Выберите интерфейс - /start")
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=1
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=1
+        # )
 
     def interface_not_selected_exceptions(self, message: types.Message):
         return not ui_repostiory_abs.check_is_user_selected_ui(user_id=message.chat.id)
@@ -470,7 +473,7 @@ class StudentHandlersStatus(StudentHandlersStatusInterface):
         dp.register_message_handler(
             self.display_user_status,
             lambda message: self.status_exceptions(message=message),
-            commands="status",
+            commands="status_for_user",
         )
         dp.register_message_handler(
             self.already_completed_message_reply,

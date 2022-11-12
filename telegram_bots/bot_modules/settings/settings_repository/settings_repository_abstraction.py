@@ -1,11 +1,11 @@
 from bot_modules.settings.data_structures import Settings
 from bot_modules.settings.settings_repository.settings_repository_interface import (
-    SettingRepositoryInterface,
+    SettingsRepositoryInterface,
 )
 
 
-class SettingRepositoryAbstraction(SettingRepositoryInterface):
-    def __init__(self, interface: SettingRepositoryInterface) -> None:
+class SettingRepositoryAbstraction(SettingsRepositoryInterface):
+    def __init__(self, interface: SettingsRepositoryInterface) -> None:
         self.interface = interface
 
     def add_user(self, user_id: str):

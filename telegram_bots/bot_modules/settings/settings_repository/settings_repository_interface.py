@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from bot_modules.settings.data_structures import Settings
 
 
-class SettingRepositoryInterface(ABC):
+class SettingsRepositoryInterface(ABC):
     @abstractmethod
     def add_user(self, user_id: str):
         raise NotImplemented

@@ -1,16 +1,17 @@
 from typing import Dict
 from bot_modules.settings.data_structures import Settings
 from bot_modules.settings.settings_repository.settings_repository_interface import (
-    SettingRepositoryInterface,
+    SettingsRepositoryInterface,
 )
 
 
 settings_repository: Dict[str, Settings] = {}  # user_id: Settings
 
 
-class SettingRepository(SettingRepositoryInterface):
+class SettingRepository(SettingsRepositoryInterface):
     def add_user(self, user_id: str):
-        settings_repository[str(user_id)] = Settings()
+        if str(user_id) not in settings_repository:
+            settings_repository[str(user_id)] = Settings()
 
     def get_user_settings(self, user_id: str) -> Settings:
         if str(user_id) in settings_repository.keys():

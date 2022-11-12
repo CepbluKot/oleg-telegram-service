@@ -3,7 +3,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-from bot_modules.register.data_structures import Customer, Student, Prepod
+from bot_modules.register.data_structures import SuperCustomer, Student, Prepod
 
 from bot_modules.register.register_handlers.register_handlers_interface import (
     CustomersHandlersInterface,
@@ -11,10 +11,12 @@ from bot_modules.register.register_handlers.register_handlers_interface import (
     StudentHandlersInterface,
 )
 
-from bot_modules.special_functions.functions_for_text_interface import (
-    student_delete_previous_calls,
-    student_delete_previous_messages,
-)
+import bot_modules.users_online
+
+# from bot_modules.special_functions.functions_for_text_interface import (
+#     student_delete_previous_calls,
+#     student_delete_previous_messages,
+# )
 
 from bot_modules.register.input_output_repositories import (
     currently_changing_register_data_repository_abs,
@@ -266,9 +268,9 @@ class StudentHandlers(StudentHandlersInterface):
                 "Препод, топай регаться в свой бот, понятно да"
             )
 
-            await student_delete_previous_messages(
-                last_message_to_delete=answer, num_of_messages_to_delete=2
-            )
+            # await student_delete_previous_messages(
+            #     last_message_to_delete=answer, num_of_messages_to_delete=2
+            # )
             return
 
         student_data = register_for_university_abs.get_user_data(user_id=message.chat.id)
@@ -294,9 +296,9 @@ class StudentHandlers(StudentHandlersInterface):
             "Хотите изменить рег. данные?", reply_markup=keyboard
         )
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=3
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=3
+        # )
 
     async def ask_register_fio(self, message: types.message, state: FSMContext):
         "(registerUser FSM) Вводим фио"
@@ -320,9 +322,9 @@ class StudentHandlers(StudentHandlersInterface):
         "(registerUser FSM) Срабатывает, если выбрана неверная группа"
 
         answer = await message.reply("Выберите группу из списка")
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=2
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=2
+        # )
 
     async def register_group_chosen(self, message: types.Message, state: FSMContext):
         "(registerUser FSM) Получаем группу и добавляем пользователя в хранилище"
@@ -355,9 +357,9 @@ class StudentHandlers(StudentHandlersInterface):
 
         await state.finish()
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=2
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=2
+        # )
 
     async def register_change_true(self, call: types.CallbackQuery):
         "(already_registered Func) Выбираем какие рег. данные изменить"
@@ -381,25 +383,25 @@ class StudentHandlers(StudentHandlersInterface):
     async def register_change_false(self, call: types.CallbackQuery):
         "(already_registered Func) Не меняем рег. данные"
         await call.answer()
-        await student_delete_previous_calls(
-            last_message_to_delete=call, num_of_messages_to_delete=1
-        )
+        # await student_delete_previous_calls(
+        #     last_message_to_delete=call, num_of_messages_to_delete=1
+        # )
         await types.Message.edit_reply_markup(self=call.message, reply_markup=None)
         answer = await call.message.answer("Окес, ничего не меняем")
         currently_changing_register_data_repository_abs.delete_user(
             user_id=call.from_user.id
         )
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=1
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=1
+        # )
 
     async def ask_edited_fio(self, call: types.CallbackQuery):
         "(register_change_true Func) Предлагаем ввести новую фамилию"
         await call.answer()
-        await student_delete_previous_calls(
-            last_message_to_delete=call, num_of_messages_to_delete=1
-        )
+        # await student_delete_previous_calls(
+        #     last_message_to_delete=call, num_of_messages_to_delete=1
+        # )
         await types.Message.edit_reply_markup(self=call.message, reply_markup=None)
         await self.RegisterChangeFioFSM.waiting_for_new_fio.set()
         await call.message.answer("Введите новые ФИО")
@@ -426,9 +428,9 @@ class StudentHandlers(StudentHandlersInterface):
             user_id=message.chat.id
         )
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=3
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=3
+        # )
 
     async def ask_edited_group(self, call: types.CallbackQuery):
         "(register_change_true Func) Предлагаем ввести новую группу"
@@ -465,18 +467,18 @@ class StudentHandlers(StudentHandlersInterface):
             user_id=message.chat.id
         )
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=4
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=4
+        # )
 
     async def not_registered(self, message: types.Message):
         answer = await message.answer(
             " Вы еще не зарегистрированы, используйте /register"
         )
 
-        await student_delete_previous_messages(
-            last_message_to_delete=answer, num_of_messages_to_delete=2
-        )
+        # await student_delete_previous_messages(
+        #     last_message_to_delete=answer, num_of_messages_to_delete=2
+        # )
 
     def alreadyRegisteredExceptions(self, user_id: int):
         return register_for_university_abs.check_is_user_in_register_data(
@@ -501,7 +503,7 @@ class StudentHandlers(StudentHandlersInterface):
             )
         )
 
-    def notRegisteredExceptions(self, user_id):
+    def not_registered_exceptions(self, user_id):
         return not register_for_university_abs.check_is_user_in_register_data(user_id=user_id)
 
     def student_registration_handlers_register(self, dp: Dispatcher):
@@ -559,7 +561,7 @@ class StudentHandlers(StudentHandlersInterface):
 
         dp.register_message_handler(
             self.not_registered,
-            lambda message: self.notRegisteredExceptions(user_id=message.chat.id),
+            lambda message: self.not_registered_exceptions(user_id=message.chat.id),
         )
 
         dp.register_callback_query_handler(
@@ -617,6 +619,7 @@ class CustomersHandlers(CustomersHandlersInterface):
 
     async def get_user_name(self, message: types.Message, state: FSMContext):
         " (register_user FSM) Ждем ввода имени"
+        bot_modules.users_online.online_ids.append(message.chat.id)
         await message.answer("Введите ваше имя")
         await self.RegisterUserFSM.waiting_for_user_name.set()
 
@@ -640,7 +643,7 @@ class CustomersHandlers(CustomersHandlersInterface):
         phone_number = message.text
         await message.answer( 'Вы зарегистрированы' + '\nВаше имя: ' + user_data['user_name'] + '; Ваш номер телефона: ' + phone_number, reply_markup=types.ReplyKeyboardRemove())
         
-        customer_data = Customer(
+        customer_data = SuperCustomer(
             user_id=message.chat.id,
             fio=user_data['user_name'],
             phone_number=phone_number,
@@ -696,7 +699,7 @@ class CustomersHandlers(CustomersHandlersInterface):
         new_user_name = message.text
 
         current_user_data = register_for_customers_abs.get_user_data(user_id=message.chat.id)
-        new_user_data = Customer(
+        new_user_data = SuperCustomer(
             user_id=current_user_data.user_id,
             fio=new_user_name,
             phone_number=current_user_data.new_phone_number
@@ -715,7 +718,7 @@ class CustomersHandlers(CustomersHandlersInterface):
         new_phone_number = message.text
 
         current_user_data = register_for_customers_abs.get_user_data(user_id=message.chat.id)
-        new_user_data = Customer(
+        new_user_data = SuperCustomer(
             user_id=current_user_data.user_id,
             fio=current_user_data.fio,
             phone_number=new_phone_number
@@ -725,6 +728,15 @@ class CustomersHandlers(CustomersHandlersInterface):
         
         await message.reply('Рег. данные обновлены, ваши текущие данные:\n' + ' Ваше имя: ' + current_user_data.fio + '; Ваш номер телефона:' + new_phone_number)
         await state.finish()
+
+
+    async def not_registered(self, message: types.Message):
+        answer = await message.answer(
+            " Вы еще не зарегистрированы, используйте /register"
+        )
+
+    def not_registered_exceptions(self, user_id):
+        return not register_for_university_abs.check_is_user_in_register_data(user_id=user_id)
 
 
     def register_handlers_registrator(self, dp: Dispatcher):
@@ -749,3 +761,8 @@ class CustomersHandlers(CustomersHandlersInterface):
             self.register_change_user_name, text="register_change_user_name")
         dp.register_callback_query_handler(
             self.register_change_phone_number, text="register_change_phone_number")
+
+        dp.register_message_handler(
+            self.not_registered,
+            lambda message: self.not_registered_exceptions(user_id=message.chat.id),
+        )

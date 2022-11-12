@@ -5,7 +5,7 @@ from bot_modules.forms.forms_handlers.forms_menu.forms_menu_handlers_interface i
 )
 
 
-from bots import prepod_bot
+from bots import demo_bot
 from bot_modules.register.input_output_repositories import (
     currently_changing_register_data_repository_abs,
 )
@@ -29,12 +29,12 @@ class FormsMenuHandlersRealisation(FormsMenuHandlersInterface):
         if str(message.chat.id) == forms_menu_abs.get_form_creator_id(
             form_id=int(form_index)
         ):
-            all_groups = groups_repository_abs.get_related_to_prepod_groups(
-                user_id=message.chat.id
-            )
-
+            # all_groups = groups_repository_abs.get_related_to_prepod_groups(
+            #     user_id=message.chat.id
+            # )
+            options = ['Вариант ' + str(i) for i in range(0, 11)]
             sent_polls = await forms_menu_abs.send_big_poll(
-                user_id=message.chat.id, poll_options=all_groups
+                user_id=message.chat.id, poll_options=options
             )
             choosing_groups_dispatcher_abs.add_user(
                 user_id=message.chat.id,
@@ -61,9 +61,15 @@ class FormsMenuHandlersRealisation(FormsMenuHandlersInterface):
         for selected_poll in polls_data:
             if selected_poll.poll_id == poll_answer.poll_id:
 
-                selected_groups = itemgetter(*poll_answer.option_ids)(
-                    selected_poll.poll_options
-                )
+                if len(poll_answer.option_ids) > 1:
+                    selected_groups = itemgetter(*poll_answer.option_ids)(
+                        selected_poll.poll_options
+                    )
+
+                else:
+                    selected_groups = [selected_poll.poll_options[poll_answer.option_ids[0]]]
+
+                
 
                 if "Ни одна из вышеперечисленных" not in selected_groups:
                     choosing_groups_dispatcher_abs.add_selected_groups(
@@ -87,7 +93,7 @@ class FormsMenuHandlersRealisation(FormsMenuHandlersInterface):
 
             # notifications_abs ...
 
-            await prepod_bot.send_message(
+            await demo_bot.send_message(
                 text="Отправлено группам " + "".join(str(all_selected_groups)),
                 reply_markup=types.ReplyKeyboardRemove(),
                 chat_id=poll_answer.user.id,

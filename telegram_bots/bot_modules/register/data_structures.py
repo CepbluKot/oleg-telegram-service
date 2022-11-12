@@ -20,10 +20,11 @@ class Student(User):
     is_register_approved: bool
 
 
-class Customer(User):
+class SuperCustomer(User):
     role = "customer"
     phone_number: str
-
+    is_register_approved = True
+    related_groups = []
 
 class DatabaseUser(BaseModel):
     name_client: str

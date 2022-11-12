@@ -1,0 +1,14 @@
+from bot_modules.schedule.settings.settings_handlers.settings_handlers import ScheduleSettingsHandlers
+from bot_modules.schedule.settings.settings_handlers.settings_handlers_abstraction import ScheduleSettingsHandlersAbstraction
+
+
+from bot_modules.schedule.schedule_handlers.schedule_handlers_realisation import ScheduleHandlers
+from bot_modules.schedule.schedule_handlers.schedule_handlers_abstraction import ScheduleHandlersAbstraction
+
+
+schedule_handlers = ScheduleHandlers()
+schedule_handlers_abs = ScheduleHandlersAbstraction(schedule_handlers)
+
+
+schedule_settings_handlers = ScheduleSettingsHandlers()
+schedule_settings_handlers_abs = ScheduleSettingsHandlersAbstraction(schedule_settings_handlers)

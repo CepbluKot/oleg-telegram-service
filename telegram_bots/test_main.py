@@ -2,148 +2,54 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from bot_modules.cancel.cancel_handler import register_handlers_cancel
-from bot_modules.settings.settings_handlers.settings_handlers import SettingsHandlers
-from bot_modules.settings.settings_handlers.settings_handlers_abstraction import (
-    SettingsHandlersAbstraction,
-)
 
+from bots import demo_bot
 
-from bots import student_bot, prepod_bot, admin_bot, customer_bot
+import bot_modules.register.input_output_handlers
+import bot_modules.sign_up_for_services.input_output_handlers
+import bot_modules.forms.input_output_handlers
+import bot_modules.settings.input_output_handlers
+import bot_modules.cancel.input_output_handlers
+import bot_modules.user_interface.input_output_handlers
+import bot_modules.special_functions.input_output_handlers
+import bot_modules.sign_up_for_services.input_output_handlers
 
-from bot_modules.register.register_handlers.register_handlers_abstraction import (
-    PrepodHandlersAbstraction,
-    StudentHandlersAbstraction,
-    CustomerHandlersAbstraction
-)
-from bot_modules.register.register_handlers.register_handlers_realisation import (
-    PrepodHandlers,
-    StudentHandlers,
-    CustomersHandlers
-)
-
-from bot_modules.forms.forms_handlers.forms_constructor.forms_constructor_handlers_realisation import (
-    FormsConstructorHandlersRealisation,
-)
-from bot_modules.forms.forms_handlers.forms_constructor.forms_constructor_handlers_abstraction import (
-    FormsConstructorHandlersAbstracation,
-)
-
-from bot_modules.forms.forms_handlers.forms_editor.forms_editor_handlers_abstraction import (
-    FormsEditorHandlersAbstraction,
-)
-from bot_modules.forms.forms_handlers.forms_editor.forms_editor_handlers_realisation import (
-    FormsEditorHandlersRealisation,
-)
-
-from bot_modules.forms.forms_handlers.forms_menu.forms_menu_handlers_realisation import (
-    FormsMenuHandlersRealisation,
-)
-from bot_modules.forms.forms_handlers.forms_menu.forms_menu_handlers_abstraction import (
-    FormsMenuHandlersAbstraction,
-)
-from bot_modules.user_interface.ui_handlers.ui_handlers import (
-    PrepodHandlersStatus,
-    StudentHandlersStatus,
-)
-from bot_modules.user_interface.ui_handlers.ui_handlers_abstraction import (
-    PrepodHandlersStatusAbstraction,
-    StudentHandlersStatusAbstraction,
-)
-
-from bot_modules.useless_messages_handler import useless_message_handler_registerer
-
-
-async def prepod_commands(bot: Bot):
-    prepod_commands = [
+async def demo_commands(bot: Bot):
+    commands = [
         BotCommand(command="/register", description="Регистация"),
-        BotCommand(command="/multi_form", description="Создать форму"),
-        BotCommand(command="/saved_forms", description="Посмотреть сохраненные формы"),
-        BotCommand(command="/status", description="Отобразить статус"),
+        BotCommand(command="/sign_up_for_service", description="Записаться на услугу"),
+        BotCommand(command="/multi_form", description="Создать форму для опроса"),
+        BotCommand(command="/saved_forms", description="Посмотреть сохраненные опросы"),
+        BotCommand(command="/status_for_creator", description="Отобразить отправленные опросы"),
+        BotCommand(command="/status_for_user", description="Отобразить полученные опросы"),
         BotCommand(command="/settings", description="Настройки"),
         BotCommand(command="/cancel", description="Отменить текущее действие"),
     ]
 
-    await bot.set_my_commands(prepod_commands)
+    await bot.set_my_commands(commands)
 
-
-async def student_commands(bot: Bot):
-    student_commands = [
-        BotCommand(command="/register", description="Регистация"),
-        BotCommand(command="/status", description="Полученные формы"),
-        BotCommand(command="/settings", description="Настройки"),
-        BotCommand(command="/cancel", description="Отменить текущее действие"),
-    ]
-    await bot.set_my_commands(student_commands)
-
-
-async def admin_commands(bot: Bot):
-    student_commands = [
-        BotCommand(
-            command="/check_current_creating_forms",
-            description="Создаваемые сейчас формы",
-        ),
-        BotCommand(command="/check_created_forms", description="Все созданные формы"),
-        BotCommand(command="/check_sent_forms", description="Отправленные формы"),
-        BotCommand(command="/check_completing_forms", description="Выполняемые формы"),
-        BotCommand(
-            command="/check_unregistered_users",
-            description="Пользователи, ожидающие подтверждения регистрации",
-        ),
-        BotCommand(
-            command="/check_edited_users",
-            description="Пользователи, ожидающие подтверждения изменения данных",
-        ),
-        BotCommand(
-            command="/get_student_list",
-            description="Получить список студентов по группе (напишите номер группы)",
-        ),
-    ]
-    await bot.set_my_commands(student_commands)
-
-
-
-async def customer_commands(bot: Bot):
-    student_commands = [
-        BotCommand(command="/register", description="Регистация"),
-        # BotCommand(command="/status", description="Полученные формы"),
-        # BotCommand(command="/settings", description="Настройки"),
-        # BotCommand(command="/cancel", description="Отменить текущее действие"),
-    ]
-    await bot.set_my_commands(student_commands)
 
 async def main():
-    prepod_bot_dispatcher = Dispatcher(
-        prepod_bot, storage=MemoryStorage(), loop=asyncio.get_event_loop()
+    demo_bot_dispatcher = Dispatcher(
+        demo_bot, storage=MemoryStorage(), loop=asyncio.get_event_loop()
     )
+ 
+    demo_bot_dispatcher.loop.create_task(demo_commands(demo_bot))
 
-    student_bot_dispatcher = Dispatcher(
-        student_bot, storage=MemoryStorage(), loop=asyncio.get_event_loop()
-    )
+    bot_modules.register.input_output_handlers.create_register_handlers(demo_bot_dispatcher)
+    bot_modules.sign_up_for_services.input_output_handlers.create_sign_up_handlers(demo_bot_dispatcher)
+    bot_modules.user_interface.input_output_handlers.create_form_creator_ui_handlers(demo_bot_dispatcher)
+    bot_modules.user_interface.input_output_handlers.create_client_ui_handlers(demo_bot_dispatcher)
+    bot_modules.forms.input_output_handlers.create_forms_handdlers(demo_bot_dispatcher)
 
-    admin_bot_dispatcher = Dispatcher(
-        admin_bot, storage=MemoryStorage(), loop=asyncio.get_event_loop()
-    )
+    bot_modules.settings.input_output_handlers.create_settings_handlers(demo_bot_dispatcher)
+    bot_modules.special_functions.input_output_handlers.create_special_functions_handlers(demo_bot_dispatcher)
+    bot_modules.sign_up_for_services.input_output_handlers.create_sign_up_handlers(demo_bot_dispatcher)
+    bot_modules.cancel.input_output_handlers.create_cancel_handler(demo_bot_dispatcher)
 
-    customer_bot_dispatcher = Dispatcher(
-        customer_bot, storage=MemoryStorage(), loop=asyncio.get_event_loop()
-    )
-
-    prepod_bot_dispatcher.loop.create_task(prepod_commands(prepod_bot))
-    student_bot_dispatcher.loop.create_task(student_commands(student_bot))
-    admin_bot_dispatcher.loop.create_task(admin_commands(admin_bot))
-    customer_bot_dispatcher.loop.create_task(customer_commands(customer_bot))
-
-    customer_reg = CustomersHandlers()
-    customer_reg_abs = CustomerHandlersAbstraction(customer_reg)
-
-    customer_reg_abs.register_handlers_registrator(dp=customer_bot_dispatcher)
 
     await asyncio.gather(
-        # prepod_bot_dispatcher.start_polling(),
-        # student_bot_dispatcher.start_polling(),
-        # admin_bot_dispatcher.start_polling(),
-        customer_bot_dispatcher.start_polling()
+        demo_bot_dispatcher.start_polling()
     )
 
 asyncio.run(main())

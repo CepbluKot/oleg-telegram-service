@@ -7,7 +7,7 @@ from bot_modules.forms.forms_realisation.forms_realisation_interface import (
 from typing import List
 from aiogram import types
 
-from bots import prepod_bot
+from bots import demo_bot
 from bot_modules.forms.data_structures import (
     ChoosingGroupsPoll,
     Form,
@@ -26,7 +26,7 @@ from bot_modules.forms.input_output_repositories import (
     sent_forms_repository_abs,
 )
 from bot_modules.service_info.input_output_repositories import groups_repository_abs
-
+import bot_modules.users_online
 
 class FormsConstructorRealisation(FormsConstructorInterface):
     def add_form(self, form: Form):
@@ -80,14 +80,14 @@ class FormsConstructorRealisation(FormsConstructorInterface):
 
                 question_number += 1
 
-            await prepod_bot.send_message(
+            await demo_bot.send_message(
                 text=parsed_msg,
                 reply_markup=types.ReplyKeyboardRemove(),
                 chat_id=user_id,
             )
 
         else:
-            await prepod_bot.send_message(
+            await demo_bot.send_message(
                 text="vse ploho",
                 reply_markup=types.ReplyKeyboardRemove(),
                 chat_id=user_id,
@@ -175,7 +175,7 @@ class FormsMenuRealisation(FormsMenuInterface):
         while len(poll_options):
             options = poll_options[:9]
             options.append("Ни одна из вышеперечисленных")
-            poll = await prepod_bot.send_poll(
+            poll = await demo_bot.send_poll(
                 chat_id=user_id,
                 options=options,
                 question="выберите группы для отпраки",
@@ -252,12 +252,12 @@ class FormsEditorRealisation(FormsEditorInterface):
 
                 full_message += parsed_msg
 
-            await prepod_bot.send_message(
+            await demo_bot.send_message(
                 text=full_message, reply_markup=None, chat_id=user_id
             )
 
         else:
-            await prepod_bot.send_message(
+            await demo_bot.send_message(
                 text="Хранилище форм пусто", reply_markup=None, chat_id=user_id
             )
 
@@ -327,21 +327,21 @@ class FormsEditorRealisation(FormsEditorInterface):
 
                         question_number += 1
 
-                    await prepod_bot.send_message(
+                    await demo_bot.send_message(
                         text=parsed_msg,
                         reply_markup=types.ReplyKeyboardRemove(),
                         chat_id=user_id,
                     )
 
             else:
-                await prepod_bot.send_message(
+                await demo_bot.send_message(
                     text="Хранилище форм пусто",
                     reply_markup=types.ReplyKeyboardRemove(),
                     chat_id=user_id,
                 )
 
         else:
-            await prepod_bot.send_message(
+            await demo_bot.send_message(
                 text="Вы не являетесь создателем формы",
                 reply_markup=types.ReplyKeyboardRemove(),
                 chat_id=user_id,

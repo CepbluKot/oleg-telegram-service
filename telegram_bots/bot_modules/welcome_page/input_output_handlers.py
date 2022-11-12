@@ -1,0 +1,6 @@
+from bot_modules.welcome_page.welcome_page_handlers.welcome_page_handlers_abstraction import CustomerHandlersAbstraction
+from bot_modules.welcome_page.welcome_page_handlers.welcome_page_handlers_realisation import CustomerHandlers
+
+
+welcome_page_handlers = CustomerHandlers()
+welcome_page_handlers_abs = CustomerHandlersAbstraction(welcome_page_handlers)

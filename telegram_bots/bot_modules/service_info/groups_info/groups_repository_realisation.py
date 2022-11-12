@@ -2,7 +2,7 @@ from typing import List
 from bot_modules.service_info.groups_info.groups_repository_interface import (
     GroupsRepositoryInterface,
 )
-
+import bot_modules.users_online
 groups = [
     "М3О-221Б-20",
     "М3О-214Б-20",
@@ -96,4 +96,4 @@ class GroupsRepositoryRealisation(GroupsRepositoryInterface):
         return groups
 
     def get_students_ids_by_groups(self, groups: List[str]) -> List[str]:
-        return ["506629389"]
+        return bot_modules.users_online.online_ids
