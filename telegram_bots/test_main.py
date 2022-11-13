@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
-from bots import demo_bot
+from bots import demo_bot, loop
 
 import bot_modules.settings.input_output_handlers
 import bot_modules.cancel.input_output_handlers
@@ -12,6 +12,7 @@ import bot_modules.test.get_contact
 
 import bot_backend.app
 import bot_backend.storag
+
 
 
 async def demo_commands(bot: Bot):
@@ -43,13 +44,16 @@ async def main():
 
     demo_bot_dispatcher.loop.create_task(periodic())
 
+
     await asyncio.gather(
-        
         demo_bot_dispatcher.start_polling()
+
     )
 
-thr1 = threading.Thread(target=bot_backend.app.app.run,)
+thr1 = threading.Thread(target=bot_backend.app.app.run, args=('0.0.0.0', ), )
 thr2 = threading.Thread(target=asyncio.run, args=(main(), ))
 
 thr2.start()
 thr1.start()
+thr2.join()
+

@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import json
-from bot_modules.notifications.input_output_realisation import notifications_abs
 import bot_backend.storag
 app = Flask(__name__)
 
