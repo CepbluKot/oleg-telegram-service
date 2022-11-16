@@ -44,10 +44,8 @@ async def main():
 
     demo_bot_dispatcher.loop.create_task(periodic())
 
-
     await asyncio.gather(
         demo_bot_dispatcher.start_polling()
-
     )
 
 thr1 = threading.Thread(target=bot_backend.app.app.run, args=('0.0.0.0', ), )

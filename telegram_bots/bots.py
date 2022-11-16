@@ -5,6 +5,4 @@ with open("./config.json") as file:
     config = json.load(file)
 
 loop = asyncio.get_event_loop()
-
-demo_bot = Bot(token=config["demoBotToken"], loop=loop)
-admin_ids = config["adminIds"]
+bot = Bot(token=config["BOT_TOKEN"], loop=loop)
