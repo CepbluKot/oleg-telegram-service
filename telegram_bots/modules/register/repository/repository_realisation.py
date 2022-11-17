@@ -10,7 +10,6 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
     def __init__(self) -> None:
         __connection_data = self.__get_connection_data()
         self.url = __connection_data["CLIENT_URL"]
-        self.api = Api()
     
     def __get_connection_data(self):
         with open('config.json', 'r') as f:
@@ -18,11 +17,13 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
         return connection_data
 
     async def add_user(self, data: User):
-        return self.api.post(url_path=self.url, data=data.json())
+        api = Api()
+        return await api.post(url_path=self.url, data=data.json())
     
-    async def get_user(self, tg_id: int, loop) -> User:
-        response = asyncio.run_coroutine_threadsafe( self.api.get(url_path=self.url+'/info_client', params={'tg_id': tg_id}), loop)
-        print(response)
+    async def get_user(self, tg_id: int) -> User:
+        api = Api()
+        response = await api.get(url_path=self.url+'/info_client', params={'tg_id': tg_id})
+
         response = json.loads(response)
 
         if not 'message' in response:
@@ -30,5 +31,6 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
             return parsed
 
     async def update_user(self, data: User):
-        response = await self.api.put(url_path=self.url, data=data.json())
+        api = Api()
+        response = await api.put(url_path=self.url, data=data.json())
         return response

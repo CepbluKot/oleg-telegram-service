@@ -6,6 +6,7 @@ from aiohttp import ClientSession
 
 class Api:
     def __init__(self) -> None:
+        # self.loop = asyncio.get_event_loop()
         self.__connection_data = self.__get_connection_data()
         self.__base_url = self.__connection_data['API_URL']
         
@@ -25,13 +26,15 @@ class Api:
 
         return connection_data
 
+    # def get_loop(self):
+    #     return self.loop
 
     async def get(self, url_path: str, params=None):
         url = self.__base_url + url_path
         async with self.__get_session.get(url, params=params) as output:
             text = await output.text()
-            text = json.loads(text)
-            return text
+            if '404' not in text:
+                return text
 
     async def post(self, url_path: str, data):
         url = self.__base_url + url_path
