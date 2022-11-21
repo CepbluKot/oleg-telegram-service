@@ -2,6 +2,11 @@ from pydantic import BaseModel
 from telegram_bots.modules.register.data_structures import User
 
 
+class BookingMenu(BaseModel):
+    page_id: int
+    current_message_id: int
+
+
 class Service(BaseModel):
     id: int
     name_service: str

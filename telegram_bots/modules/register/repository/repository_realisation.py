@@ -1,4 +1,5 @@
 import json
+from pydantic import BaseModel
 from telegram_bots.modules.general_data_structures import Data
 from telegram_bots.modules.register.data_structures import User
 from telegram_bots.modules.register.repository.repository_interface import (
@@ -34,10 +35,11 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
             if not self.__is_exception(response=response):
                 response = json.loads(response)
                 parsed = User.parse_raw(response[0])
-       
-                output = Data(data=parsed)  
+    
+                output = Data(data=parsed)
             else:
-                output = Data(is_exception=True, exception_data=response)
+                output = Data(is_exception=True, exception_data=str(response), data=BaseModel())
+                print('output',output)
             
             return output
 

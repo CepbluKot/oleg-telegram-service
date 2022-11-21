@@ -32,46 +32,48 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
         if "available" in response:
             return True
 
-    def get_users_bookings(self, tg_id: int) -> List[Booking]:
+    async def get_users_bookings(self, tg_id: int) -> List[Booking]:
         api = Api()
         bookings = []
-        # response = await api.get(
-        #     url_path=self.url + "/my_booking", params={"id_client": tg_id}
-        # )
+        response = await api.get(
+            url_path=self.url + "/my_booking", params={"id_client": tg_id}
+        )
+        print('resp', response)
+        if not self.__is_exception(response):
+            response = json.loads(response)
+            for selected_booking in response:
+              
+                booking_day_end = selected_booking["booking_day_end"]
+                booking_day_start = selected_booking["booking_day_start"]
+                booking_time_end = selected_booking["booking_time_end"]
+                booking_time_start = selected_booking["booking_time_start"]
+                comment = selected_booking["comment"]
+                connect_event = selected_booking["connect_event"]
+                connect_user = User(
+                    name=selected_booking["connect_user"]["name_client"],
+                    tg_id=selected_booking["connect_user"]["tg_id"],
+                    phone=selected_booking["connect_user"]["phone_num"],
+                )
+                id_booking = selected_booking["id_booking"]
+                subscription_service = Service(
+                    id=selected_booking["subscription_service"]["id"],
+                    name_service=selected_booking["subscription_service"][
+                        "name_service"
+                    ],
+                )
+                
+                parsed = Booking(
+                    booking_day_end=booking_day_end,
+                    booking_day_start=booking_day_start,
+                    booking_time_end=booking_time_end,
+                    booking_time_start=booking_time_start,
+                    comment=str(comment),
+                    connect_event=connect_event,
+                    connect_user=connect_user,
+                    id_booking=id_booking,
+                    subscription_service=subscription_service,
+                )
 
-        # if not self.__is_exception(response):
-            # for selected_booking in response:
-            #     booking_day_end = selected_booking["booking_day_end"]
-            #     booking_day_start = selected_booking["booking_day_start"]
-            #     booking_time_end = selected_booking["booking_time_end"]
-            #     booking_time_start = selected_booking["booking_time_start"]
-            #     comment = selected_booking["comment"]
-            #     connect_event = selected_booking["connect_event"]
-            #     connect_user = User(
-            #         name=selected_booking["connect_user"]["name_client"],
-            #         tg_id=selected_booking["connect_user"]["tg_id"],
-            #         phone=selected_booking["connect_user"]["phone_num"],
-            #     )
-            #     id_booking = selected_booking["id_booking"]
-            #     subscription_service = Service(
-            #         id=selected_booking["subscription_service"]["id"],
-            #         name_service=selected_booking["subscription_service"][
-            #             "name_service"
-            #         ],
-            #     )
-            # print('response', response)
-                # parsed = Booking(
-                #     booking_day_end=booking_day_end,
-                #     booking_day_start=booking_day_start,
-                #     booking_time_end=booking_time_end,
-                #     booking_time_start=booking_time_start,
-                #     comment=comment,
-                #     connect_event=connect_event,
-                #     connect_user=connect_user,
-                #     id_booking=id_booking,
-                #     subscription_service=subscription_service,
-                # )
-
-                # bookings.append(parsed)
-        return sample
-        # return bookings
+                bookings.append(parsed)
+        
+        return bookings

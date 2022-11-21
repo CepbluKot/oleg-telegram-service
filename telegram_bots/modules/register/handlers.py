@@ -10,6 +10,7 @@ class WaitForContactFSM(StatesGroup):
 
 async def ask_phone_number(message: types.Message, state: FSMContext):
     response = await register_repository_abstraction.get_user(message.from_user.id)
+    
     if not response.is_exception:
         await message.answer("Вы уже зарегистрированы")
 
