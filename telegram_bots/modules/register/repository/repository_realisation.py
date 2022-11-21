@@ -1,8 +1,9 @@
 import json
-import asyncio
-from typing import List
+from telegram_bots.modules.general_data_structures import Data
 from telegram_bots.modules.register.data_structures import User
-from telegram_bots.modules.register.repository.repository_interface import RegisterRepositoryInterface
+from telegram_bots.modules.register.repository.repository_interface import (
+    RegisterRepositoryInterface,
+)
 from telegram_bots.api.api import Api
 
 
@@ -10,27 +11,51 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
     def __init__(self) -> None:
         __connection_data = self.__get_connection_data()
         self.url = __connection_data["CLIENT_URL"]
-    
+
     def __get_connection_data(self):
-        with open('config.json', 'r') as f:
-            connection_data = json.loads(f.read())
-        return connection_data
+        try:
+            with open("config.json", "r") as f:
+                connection_data = json.loads(f.read())
+            return connection_data
+        except:
+            print("error - __get_connection_data")
 
-    async def add_user(self, data: User):
-        api = Api()
-        return await api.post(url_path=self.url, data=data.json())
-    
-    async def get_user(self, tg_id: int) -> User:
-        api = Api()
-        response = await api.get(url_path=self.url+'/info_client', params={'tg_id': tg_id})
+    def __is_exception(self, response: dict):
+        if "message" in response or 'internal' in response:
+            return True
 
-        response = json.loads(response)
+    async def get_user(self, tg_id: int) -> Data:
+        try:
+            api = Api()
+            response = await api.get(
+                url_path=self.url + "/info_client", params={"tg_id": tg_id}
+            )
+            
+            if not self.__is_exception(response=response):
+                response = json.loads(response)
+                parsed = User.parse_raw(response[0])
+       
+                output = Data(data=parsed)  
+            else:
+                output = Data(is_exception=True, exception_data=response)
+            
+            return output
 
-        if not 'message' in response:
-            parsed = User(name=response[0]['name_client'], tg_id=response[0]['tg_id'], phone=response[0]['phone_num'])
-            return parsed
+        except:
+            print("error - get_user")
 
-    async def update_user(self, data: User):
-        api = Api()
-        response = await api.put(url_path=self.url, data=data.json())
-        return response
+    async def update_user(self, data: User) -> Data:
+        try:
+            api = Api()
+            response = await api.put(url_path=self.url, data=data.json())
+            response = json.loads(response)
+            if not self.__is_exception(response):
+                print('resp', response)
+                parse = User.parse_raw(response[0])
+                output = Data(data=response)
+            else:
+                output = Data(is_exception=True, exception_data=response)
+        
+            return output
+        except:
+            print("error - update_user")

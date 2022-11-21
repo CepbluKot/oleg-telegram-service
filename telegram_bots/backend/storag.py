@@ -6,4 +6,4 @@ class StorObj:
     userid: str
 
 
-stor: typing.List[StorObj]  = []
+stor: typing.List[StorObj] = []

@@ -4,7 +4,7 @@ from telegram_bots.modules.register.data_structures import User
 
 class Service(BaseModel):
     id: int
-    name_service: str 
+    name_service: str
 
 
 class Booking(BaseModel):

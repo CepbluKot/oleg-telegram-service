@@ -1,7 +1,9 @@
 from aiogram import Dispatcher, types
 
 from bot_modules.settings.settings_handlers.settings_handlers import SettingsHandlers
-from bot_modules.settings.settings_handlers.settings_handlers_abstraction import SettingsHandlersAbstraction
+from bot_modules.settings.settings_handlers.settings_handlers_abstraction import (
+    SettingsHandlersAbstraction,
+)
 
 
 def create_settings_handlers(dp: Dispatcher):

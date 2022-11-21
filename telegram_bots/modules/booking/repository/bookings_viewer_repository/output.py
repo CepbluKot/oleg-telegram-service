@@ -1,0 +1,4 @@
+from telegram_bots.modules.booking.repository.bookings_viewer_repository.realisation import BookingViewerRepository
+
+
+booking_viewer_repository = BookingViewerRepository()
