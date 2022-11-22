@@ -10,7 +10,7 @@ from backend.storage import storage
 
 
 async def __launch_notifications_daemon():
-    while current_thread().isAlive():
+    while current_thread().is_alive():
         await asyncio.sleep(0.001)
         while storage:
             notification = storage.pop()
