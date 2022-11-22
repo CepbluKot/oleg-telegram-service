@@ -12,7 +12,8 @@ async def ask_phone_number(message: types.Message, state: FSMContext):
     response = await register_repository_abstraction.get_user(message.from_user.id)
     
     if not response.is_exception:
-        await message.answer("Вы уже зарегистрированы")
+        if response.data.tg_id == message.chat.id:
+            await message.answer("Вы уже зарегистрированы")
 
     else:
         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
@@ -27,10 +28,12 @@ async def ask_phone_number(message: types.Message, state: FSMContext):
 
 
 async def final(message: types.Message, state: FSMContext):
-    await message.answer("Регистрация завершена", reply_markup="")
+    await message.answer("Регистрация завершена", reply_markup=None)
     print(message.contact.phone_number)
     # do smth in api
     await state.finish()
+
+
 
 
 async def already_registered_check(message: types.Message):

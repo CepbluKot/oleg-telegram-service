@@ -38,6 +38,7 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
                 parsed = User.parse_raw(response[0])
     
                 output = Data(data=parsed)
+                
             else:
                 output = Data(is_exception=True, exception_data=str(response), data=BaseModel())
                 print('output',output)
