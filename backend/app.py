@@ -4,11 +4,14 @@ from backend.storage import storage, StorageObject
 from backend.storage import storage
 
 
+with open('config.json') as file:
+    listen_path = json.loads(file.read())['NOTIFICATIONS_SENDER_LISTENER'] 
+
 
 app = Flask(__name__)
 
 
-@app.route("/notify", methods=["POST"])
+@app.route(f"/{listen_path}", methods=["POST"])
 def notify():
 
     recieved = request.get_data().decode("utf-8")

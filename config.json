@@ -1,4 +1,5 @@
 {
+    "NOTIFICATIONS_SENDER_LISTENER": "notify",
     "API_KEY": "oleg",
     "API_URL": "https://olegbackend.ru/api_booking",
     "CLIENT_URL": "/client",
