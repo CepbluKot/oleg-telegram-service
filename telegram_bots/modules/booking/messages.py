@@ -6,6 +6,9 @@ from telegram_bots.modules.booking.repository.api_repository.output import booki
 from telegram_bots.bots import bot
 
 
+test_usr_id = 3
+
+
 class BookingMessages:
     def booking_view_menu_message(self, bookings: typing.List[Booking], current_booking_id: int):
         message_text = ''
@@ -34,38 +37,40 @@ class BookingMessages:
         return message_text, buttons
 
     async def previous_booking(self, call: types.CallbackQuery):
-        current_booking = booking_viewer_repository.read(call.message.chat.id)
-        current_page_id = current_booking.page_id
+        current_booking_viewer = booking_viewer_repository.read(call.message.chat.id)
+        current_page_id = current_booking_viewer.page_id
 
         if current_page_id > 0:
             current_page_id -= 1
-            message_text, buttons = self.booking_view_menu_message(bookings=booking_repository_abstraction.get_users_bookings(1), current_booking_id=current_page_id)
+            all_bookings = await booking_repository_abstraction.get_users_bookings(test_usr_id)
+            message_text, buttons = self.booking_view_menu_message(bookings=all_bookings, current_booking_id=current_page_id)
 
             keyboard = types.InlineKeyboardMarkup(row_width=3)
             keyboard.add(*buttons)
 
-            await bot.delete_message(call.message.chat.id, current_booking.current_message_id)
+            await bot.delete_message(call.message.chat.id, current_booking_viewer.current_message_id)
             answer_msg = await call.message.answer(message_text, reply_markup=keyboard)
-            booking_viewer_repository.update(tg_id=1, data=BookingMenu(page_id=current_page_id, current_message_id=answer_msg.message_id))
+            booking_viewer_repository.update(tg_id=call.message.chat.id, data=BookingMenu(page_id=current_page_id, current_message_id=answer_msg.message_id))
   
 
     async def next_booking(self, call: types.CallbackQuery):
-        current_booking = booking_viewer_repository.read(call.message.chat.id)
-        current_page_id = current_booking.page_id
+        current_booking_viewer = booking_viewer_repository.read(call.message.chat.id)
+        current_page_id = current_booking_viewer.page_id
 
-        bookings = await booking_repository_abstraction.get_users_bookings(1)
-        print(bookings)
-        if current_page_id + 1 < len(bookings):
+        all_bookings = await booking_repository_abstraction.get_users_bookings(test_usr_id)
+        print('wtf', all_bookings)
+        if current_page_id + 1 < len(all_bookings):
+            
             current_page_id += 1
-            curr_page = await booking_repository_abstraction.get_users_bookings(1)
-            message_text, buttons = self.booking_view_menu_message(bookings=curr_page, current_booking_id=current_page_id)
+            
+            message_text, buttons = self.booking_view_menu_message(bookings=all_bookings, current_booking_id=current_page_id)
 
             keyboard = types.InlineKeyboardMarkup(row_width=3)
             keyboard.add(*buttons)
 
-            await bot.delete_message(call.message.chat.id, current_booking.current_message_id)
+            await bot.delete_message(call.message.chat.id, current_booking_viewer.current_message_id)
             answer_msg = await call.message.answer(message_text, reply_markup=keyboard)
-            booking_viewer_repository.update(tg_id=1, data=BookingMenu(page_id=current_page_id, current_message_id=answer_msg.message_id))
+            booking_viewer_repository.update(tg_id=call.message.chat.id, data=BookingMenu(page_id=current_page_id, current_message_id=answer_msg.message_id))
     
 
     def close_booking_view_menu(self):

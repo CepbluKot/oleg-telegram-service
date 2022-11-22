@@ -22,7 +22,9 @@ async def main():
     #     phone_number="88005553535", telegram_id=123
     # )
 
-    resp = await register_repository_abstraction.get_user(4)
+    # resp = await register_repository_abstraction.get_user(4)
+    resp = await booking_repository_abstraction.get_users_bookings(3)
+
     if not resp:
         print("not available")
 
