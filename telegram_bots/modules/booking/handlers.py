@@ -38,3 +38,5 @@ def register_booking_handlers(dp: Dispatcher):
     dp.register_message_handler(get_bookings, commands="my_bookings")
     dp.register_callback_query_handler(messages.next_booking, text='next_booking')
     dp.register_callback_query_handler(messages.previous_booking, text='previous_booking')
+    dp.register_callback_query_handler(messages.close_booking_view_menu, text='close_booking_view_menu')
+    dp.register_callback_query_handler(messages.do_nothing, text='do_nothing')

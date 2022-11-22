@@ -29,18 +29,23 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
         return connection_data
 
     def __is_exception(self, response: str):
-        if "available" in response:
+        if response:
+            print('response',response)
+            if "available" in response:
+                return True
+        elif not response:
             return True
-
+        
     async def get_users_bookings(self, tg_id: int) -> List[Booking]:
         api = Api()
         bookings = []
         response = await api.get(
             url_path=self.url + "/my_booking", params={"id_client": tg_id}
         )
-        print('resp', response)
+        
         if not self.__is_exception(response):
             response = json.loads(response)
+
             for selected_booking in response:
               
                 booking_day_end = selected_booking["booking_day_end"]

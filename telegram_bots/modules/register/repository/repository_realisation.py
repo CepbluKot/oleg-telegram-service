@@ -22,8 +22,9 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
             print("error - __get_connection_data")
 
     def __is_exception(self, response: dict):
-        if "message" in response or 'internal' in response:
-            return True
+        if response:
+            if "message" in response or 'internal' in response:
+                return True
 
     async def get_user(self, tg_id: int) -> Data:
         try:

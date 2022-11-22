@@ -37,6 +37,7 @@ class BookingMessages:
         return message_text, buttons
 
     async def previous_booking(self, call: types.CallbackQuery):
+        await call.answer()
         current_booking_viewer = booking_viewer_repository.read(call.message.chat.id)
         current_page_id = current_booking_viewer.page_id
 
@@ -54,11 +55,12 @@ class BookingMessages:
   
 
     async def next_booking(self, call: types.CallbackQuery):
+        await call.answer()
         current_booking_viewer = booking_viewer_repository.read(call.message.chat.id)
         current_page_id = current_booking_viewer.page_id
 
         all_bookings = await booking_repository_abstraction.get_users_bookings(test_usr_id)
-        print('wtf', all_bookings)
+
         if current_page_id + 1 < len(all_bookings):
             
             current_page_id += 1
@@ -69,9 +71,16 @@ class BookingMessages:
             keyboard.add(*buttons)
 
             await bot.delete_message(call.message.chat.id, current_booking_viewer.current_message_id)
+            
             answer_msg = await call.message.answer(message_text, reply_markup=keyboard)
             booking_viewer_repository.update(tg_id=call.message.chat.id, data=BookingMenu(page_id=current_page_id, current_message_id=answer_msg.message_id))
     
 
-    def close_booking_view_menu(self):
-        pass
+    async def close_booking_view_menu(self, call: types.CallbackQuery):
+        await call.answer()
+        current_booking_viewer = booking_viewer_repository.read(call.message.chat.id)
+        await bot.delete_message(call.message.chat.id, current_booking_viewer.current_message_id)
+        booking_viewer_repository.delete(call.message.chat.id)
+
+    async def do_nothing(self, call: types.CallbackQuery):
+        await call.answer()
