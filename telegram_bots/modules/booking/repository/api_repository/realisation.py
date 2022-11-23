@@ -4,7 +4,7 @@ from telegram_bots.modules.booking.data_structures import User, Booking, Service
 from telegram_bots.modules.booking.repository.api_repository.interface import (
     BookingRepositoryInterface,
 )
-from api.api import Api
+from api.api import ApiAsync
 
 
 usr = User(name='olega', tg_id=14, phone='89005553535')
@@ -38,7 +38,7 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
             return True
         
     async def get_users_bookings(self, tg_id: int) -> List[Booking]:
-        api = Api()
+        api = ApiAsync()
         bookings = []
         response = await api.get(
             url_path=self.url + "/my_booking", params={"id_tg": tg_id}
@@ -91,7 +91,7 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
 
 
     async def delete_booking(self, client_id: int, booking_id: int) -> List[Booking]:
-        api = Api()
+        api = ApiAsync()
         response = await api.delete(
             url_path=self.url, params={"id_client": client_id, "id_bookings": booking_id}
         )

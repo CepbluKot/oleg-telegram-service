@@ -5,9 +5,9 @@ from telegram_bots.modules.register.data_structures import User
 
 class RegisterRepositoryInterface(ABC):
     @abstractmethod
-    async def get_user(self, tg_id: int) -> User:
+    def get_user(self, tg_id: int) -> User:
         raise NotImplemented
 
     @abstractmethod
-    async def update_user(self, data: User):
+    def update_user(self, data: User):
         raise NotImplemented
