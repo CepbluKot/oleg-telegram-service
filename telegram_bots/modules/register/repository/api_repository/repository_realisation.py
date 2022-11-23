@@ -24,6 +24,8 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
         if response:
             if "message" in response or 'internal' in response:
                 return True
+        elif not response or len(response):
+            return True
 
     async def get_user(self, tg_id: int) -> User:
         try:
@@ -31,7 +33,7 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
             response = await api.get(
                 url_path=self.url + "/info_client", params={"tg_id": tg_id}
             )
-            
+            print('response',bool(response))
             if not self.__is_exception(response=response):
                 response = json.loads(response)
                 parsed = UserForParse.parse_raw(response[0])

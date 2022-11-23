@@ -8,10 +8,10 @@ class RegistrationFSM(StatesGroup):
     waif_for_contact = State()
 
 
-async def ask_for_phone_number(message: types.Message):
+async def ask_for_phone_number_input(message: types.Message):
     response = await register_repository_abstraction.get_user(message.from_user.id)
     
-    if not response.is_exception:
+    if response and not response.is_exception:
         if response.tg_id == message.chat.id:
             await message.answer("Вы уже зарегистрированы")
 
@@ -25,12 +25,12 @@ async def ask_for_phone_number(message: types.Message):
             
             await message.answer("Хотите ввести свой номер телефона?", reply_markup=buttons)
     
+    else:
+        message.answer("В настоящий момент сервис не доступен, пожалуйста. повторите позже")
 
 
 async def ask_phone_number(message: types.Message):
     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    
-    
     
     send_phone_number_button = types.KeyboardButton(
         text="Отправить номер телефона", request_contact=True
@@ -44,8 +44,6 @@ async def ask_phone_number(message: types.Message):
 
 async def recieve_phone_number_contact(message: types.Message, state: FSMContext):
     await message.answer("Регистрация завершена", reply_markup=None)
-
-
     print('contct',  message.contact)
     # print('message.contact.phone_number', message.contact.phone_number, 'text', message.text)
     # do smth in api
@@ -54,28 +52,31 @@ async def recieve_phone_number_contact(message: types.Message, state: FSMContext
 
 async def recieve_phone_number_text(message: types.Message, state: FSMContext):
     await message.answer("Регистрация завершена", reply_markup=None)
-
-
-    
     print('text', message.text)
     # print('message.contact.phone_number', message.contact.phone_number, 'text', message.text)
     # do smth in api
     await state.finish()
 
 
-async def already_registered_check(message: types.Message):
-    return await register_repository_abstraction.get_user(message.from_user.id)
+async def wrong_phone_number():
+    pass
+    # неверный формат номера, повторите ввод
+
+
+async def dont_enter_phone(call: types.callback_query):
+    await call.Message.answer('Окей, идентификация по tg id')
 
 
 def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(
-        ask_phone_number,
+        ask_for_phone_number_input,
         commands="start",
     )
     dp.register_message_handler(
         recieve_phone_number_contact, state=RegistrationFSM.waif_for_contact, content_types="contact"
     )
-
     dp.register_message_handler(
         recieve_phone_number_text, state=RegistrationFSM.waif_for_contact
     )
+    dp.register_callback_query_handler(dont_enter_phone, text="dont_enter_phone")
+    dp.register_callback_query_handler(ask_phone_number, text="enter_phone")

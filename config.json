@@ -2,7 +2,7 @@
     "NOTIFICATIONS_SENDER_LISTENER": "notify",
     "API_KEY": "oleg",
     
-    "API_URL": "http://192.168.3.142:5000/api_booking",
+    "API_URL": "https://olegbackend.ru/api_booking",
     "CLIENT_URL": "/client",
     "BOOKING_URL": "/booking",
     "BOT_TOKEN": "5629906990:AAHRk26t2YunpHp6k7KnY1-SkLfYOlUWqwg"
