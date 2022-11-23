@@ -6,6 +6,7 @@ from telegram_bots.modules.booking.repository.api_repository.interface import (
 )
 from telegram_bots.api.api import Api
 
+
 usr = User(name='olega', tg_id=14, phone='89005553535')
 srv_0 = Service(id=0, name_service='Доставка бананов')
 srv_1 = Service(id=1, name_service='Барбишоп')
@@ -30,9 +31,9 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
 
     def __is_exception(self, response: str):
         if response:
-            print('response',response)
-            if "available" in response:
+            if "available" in response or "message" in response:
                 return True
+
         elif not response:
             return True
         
@@ -40,14 +41,14 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
         api = Api()
         bookings = []
         response = await api.get(
-            url_path=self.url + "/my_booking", params={"id_client": tg_id}
+            url_path=self.url + "/my_booking", params={"id_tg": tg_id}
         )
         
         if not self.__is_exception(response):
             response = json.loads(response)
 
             for selected_booking in response:
-              
+
                 booking_day_end = selected_booking["booking_day_end"]
                 booking_day_start = selected_booking["booking_day_start"]
                 booking_time_end = selected_booking["booking_time_end"]
@@ -60,12 +61,17 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
                     phone=selected_booking["connect_user"]["phone_num"],
                 )
                 id_booking = selected_booking["id_booking"]
-                subscription_service = Service(
-                    id=selected_booking["subscription_service"]["id"],
-                    name_service=selected_booking["subscription_service"][
-                        "name_service"
-                    ],
-                )
+
+                if selected_booking["subscription_service"]:
+                    
+                    subscription_service = Service(
+                        id=selected_booking["subscription_service"]["id"],
+                        name_service=selected_booking["subscription_service"][
+                            "name_service"
+                        ])
+                else:
+                    subscription_service = Service()
+                
                 
                 parsed = Booking(
                     booking_day_end=booking_day_end,
@@ -82,3 +88,12 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
                 bookings.append(parsed)
         
         return bookings
+
+
+    async def delete_booking(self, client_id: int, booking_id: int) -> List[Booking]:
+        api = Api()
+        response = await api.delete(
+            url_path=self.url, params={"id_client": client_id, "id_bookings": booking_id}
+        )
+        if not self.__is_exception(response):
+            return True

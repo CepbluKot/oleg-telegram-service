@@ -38,6 +38,7 @@ class Api:
     async def get(self, url_path: str, params=None):
         try:
             url = self.__base_url + url_path
+           
             async with self.__get_session.get(
                 url, params=params, timeout=self.timeout
             ) as output:

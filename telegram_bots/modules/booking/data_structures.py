@@ -8,8 +8,8 @@ class BookingMenu(BaseModel):
 
 
 class Service(BaseModel):
-    id: int
-    name_service: str
+    id: int = None
+    name_service: str = None
 
 
 class Booking(BaseModel):

@@ -8,13 +8,13 @@ from telegram_bots.modules.booking.data_structures import BookingMenu
 from telegram_bots.bots import bot
 
 
-test_user_id = 3
+test_user_id = 99999
 messages = BookingMessages()
 
 
 async def get_bookings(message: types.Message):
     bookings = await booking_repository_abstraction.get_users_bookings(test_user_id)
-
+  
     user_boking_viewer = booking_viewer_repository.read(message.chat.id)
 
     if not user_boking_viewer:
