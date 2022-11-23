@@ -1,11 +1,10 @@
 import json
 from pydantic import BaseModel
-from telegram_bots.modules.general_data_structures import Data
-from telegram_bots.modules.register.data_structures import User
-from telegram_bots.modules.register.repository.repository_interface import (
+from telegram_bots.modules.register.data_structures import User, UserForParse
+from telegram_bots.modules.register.repository.api_repository.repository_interface import (
     RegisterRepositoryInterface,
 )
-from telegram_bots.api.api import Api
+from api.api import Api
 
 
 class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
@@ -26,7 +25,7 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
             if "message" in response or 'internal' in response:
                 return True
 
-    async def get_user(self, tg_id: int) -> Data:
+    async def get_user(self, tg_id: int) -> User:
         try:
             api = Api()
             response = await api.get(
@@ -35,12 +34,11 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
             
             if not self.__is_exception(response=response):
                 response = json.loads(response)
-                parsed = User.parse_raw(response[0])
-    
-                output = Data(data=parsed)
+                parsed = UserForParse.parse_raw(response[0])
+                output = User(name=parsed.name, tg_id=parsed.tg_id, phone=parsed.phone)
                 
             else:
-                output = Data(is_exception=True, exception_data=str(response), data=BaseModel())
+                output = User(is_exception=True, exception_data=str(response))
                 print('output',output)
             
             return output
@@ -48,17 +46,17 @@ class RegisterRepositoryRealisationDatabase(RegisterRepositoryInterface):
         except:
             print("error - get_user")
 
-    async def update_user(self, data: User) -> Data:
+    async def update_user(self, data: User) -> User:
         try:
             api = Api()
             response = await api.put(url_path=self.url, data=data.json())
             response = json.loads(response)
             if not self.__is_exception(response):
                 print('resp', response)
-                parse = User.parse_raw(response[0])
-                output = Data(data=response)
+                # parse = UserForParse.parse_raw(response[0])
+                output = User(tg_id=response['tg_id'], phone=response['phone'], name=response['name'])
             else:
-                output = Data(is_exception=True, exception_data=response)
+                output = User(is_exception=True, exception_data=str(response))
         
             return output
         except:

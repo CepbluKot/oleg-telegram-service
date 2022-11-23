@@ -1,7 +1,7 @@
-from telegram_bots.modules.register.repository.repository_realisation import (
+from telegram_bots.modules.register.repository.api_repository.repository_realisation import (
     RegisterRepositoryRealisationDatabase,
 )
-from telegram_bots.modules.register.repository.repository_abstraction import (
+from telegram_bots.modules.register.repository.api_repository.repository_abstraction import (
     RegisterRepositoryAbstraction,
 )
 

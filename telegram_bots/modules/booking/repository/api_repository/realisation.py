@@ -4,7 +4,7 @@ from telegram_bots.modules.booking.data_structures import User, Booking, Service
 from telegram_bots.modules.booking.repository.api_repository.interface import (
     BookingRepositoryInterface,
 )
-from telegram_bots.api.api import Api
+from api.api import Api
 
 
 usr = User(name='olega', tg_id=14, phone='89005553535')
