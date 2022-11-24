@@ -19,6 +19,12 @@ class BookingMessages:
         current_booking_id = current_begin_page_id * bookings_per_page
         last_booking_id_on_page = current_booking_id + bookings_per_page - 1
 
+        container_lenth = len(bookings)
+        if container_lenth - current_booking_id - 1 <= bookings_per_page:
+            last_booking_id_on_page = container_lenth - 1
+
+
+
         while current_booking_id <= last_booking_id_on_page:
             current_booking = bookings[current_booking_id]
 
@@ -34,7 +40,7 @@ class BookingMessages:
             message_text += f'С {begin_day} {begin_time} до {end_day} {end_time}\n'
             message_text += f'Комментарий: {comment}\n'
             message_text += f'id: {booking_id}\n'
-
+            message_text += f'Отменить запись - /cancel_{current_booking_id}\n'
             current_booking_id += 1
 
         num_of_pages = math.ceil(len(bookings) / bookings_per_page)

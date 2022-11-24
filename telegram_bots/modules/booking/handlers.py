@@ -2,6 +2,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 from telegram_bots.modules.booking.repository.api_repository.output import booking_repository_abstraction
+from telegram_bots.modules.booking.repository.bookings_deleter_repository.output import bookigs_deleter_repository
 from telegram_bots.modules.booking.repository.bookings_viewer_repository.output import booking_viewer_repository
 from telegram_bots.modules.booking.messages import BookingMessages
 from telegram_bots.modules.booking.data_structures import BookingMenu
@@ -34,9 +35,46 @@ async def get_bookings(message: types.Message):
     booking_viewer_repository.update(tg_id=message.chat.id, data=BookingMenu(page_id=cur_page_id, current_message_id=answer_msg.message_id))
 
 
+
+
+async def cancel_booking_command_handler(message: types.Message):
+  
+    parsed = message.text.split('_')[1]
+    
+    bookigs_deleter_repository.create(message.chat.id, parsed)
+
+    buttons = [
+            types.InlineKeyboardButton(
+                text="Да", callback_data="approve_booking_delete"),
+            
+            types.InlineKeyboardButton(
+                text="Нет", callback_data="deny_booking_delete"),
+        ]
+
+    keyboard = types.InlineKeyboardMarkup(row_width=3)
+    keyboard.add(*buttons)
+    await message.answer('Вы уверены, что хотите отменить запись?', reply_markup=keyboard)
+
+
+async def approve_booking_delete(call: types.CallbackQuery):
+    await call.message.answer('Запись отменена')
+    bookigs_deleter_repository.delete(call.message.chat.id)
+
+
+async def deny_booking_delete(call: types.CallbackQuery):
+    await call.message.answer('Окей, ничего не отменяем')
+    bookigs_deleter_repository.delete(call.message.chat.id)
+
+
 def register_booking_handlers(dp: Dispatcher):
     dp.register_message_handler(get_bookings, commands="my_bookings")
+    dp.register_message_handler(cancel_booking_command_handler, lambda message: message.text.startswith('/cancel_'))
+
     dp.register_callback_query_handler(messages.next_booking, text='next_booking')
     dp.register_callback_query_handler(messages.previous_booking, text='previous_booking')
     dp.register_callback_query_handler(messages.close_booking_view_menu, text='close_booking_view_menu')
     dp.register_callback_query_handler(messages.do_nothing, text='do_nothing')
+
+    
+    dp.register_callback_query_handler(approve_booking_delete, text='approve_booking_delete')
+    dp.register_callback_query_handler(deny_booking_delete, text='deny_booking_delete')

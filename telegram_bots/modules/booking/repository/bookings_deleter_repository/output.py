@@ -1,0 +1,4 @@
+from telegram_bots.modules.booking.repository.bookings_deleter_repository.realisation import BookigsDeleterRepository
+
+
+bookigs_deleter_repository = BookigsDeleterRepository()
