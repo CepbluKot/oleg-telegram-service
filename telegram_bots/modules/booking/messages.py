@@ -6,7 +6,7 @@ from telegram_bots.modules.booking.repository.api_repository.output import booki
 from telegram_bots.bots import bot
 
 
-test_usr_tg_id = 99999
+# test_usr_tg_id = 99999
 bookings_per_page = 5
 
 # to-do : show 5 bookings at once
@@ -22,7 +22,6 @@ class BookingMessages:
         container_lenth = len(bookings)
         if container_lenth - current_booking_id - 1 <= bookings_per_page:
             last_booking_id_on_page = container_lenth - 1
-
 
 
         while current_booking_id <= last_booking_id_on_page:
@@ -66,7 +65,7 @@ class BookingMessages:
 
         if current_page_id > 0:
             current_page_id -= 1
-            all_bookings = await booking_repository_abstraction.get_users_bookings(test_usr_tg_id)
+            all_bookings = await booking_repository_abstraction.get_users_bookings(call.message.chat.id)
             message_text, buttons = self.booking_view_menu_message(
                 bookings=all_bookings, current_begin_page_id=current_page_id)
 
@@ -84,7 +83,7 @@ class BookingMessages:
             call.message.chat.id)
         current_page_id = current_booking_viewer_state.page_id
 
-        all_bookings = await booking_repository_abstraction.get_users_bookings(test_usr_tg_id)
+        all_bookings = await booking_repository_abstraction.get_users_bookings(call.message.chat.id)
 
         if current_page_id + 1 < math.ceil(len(all_bookings) / bookings_per_page):
             current_page_id += 1
@@ -100,6 +99,7 @@ class BookingMessages:
             answer_msg = await call.message.answer(message_text, reply_markup=keyboard)
             booking_viewer_repository.update(tg_id=call.message.chat.id, data=BookingMenu(
                 page_id=current_page_id, current_message_id=answer_msg.message_id))
+
 
     async def close_booking_view_menu(self, call: types.CallbackQuery):
         await call.answer()

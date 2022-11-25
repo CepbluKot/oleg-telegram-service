@@ -19,7 +19,7 @@ class ApiAsync:
         }
         delete_session_args = {
             "X-API-KEY": self.__connection_data["API_KEY"],
-            "Content-Type": "application/json",
+            # "Content-Type": "application/json",
         }
 
         self.__post_session = ClientSession(headers=post_session_args)
@@ -65,10 +65,10 @@ class ApiAsync:
         except:
             print("error - put")
 
-    async def delete(self, url_path: str, data):
+    async def delete(self, url_path: str, params):
         try:
             url = self.__base_url + url_path
-            async with self.__delete_session.delete(url=url, data=data) as output:
+            async with self.__delete_session.delete(url=url, params=params) as output:
                 text = await output.text()
                 return text
         except:

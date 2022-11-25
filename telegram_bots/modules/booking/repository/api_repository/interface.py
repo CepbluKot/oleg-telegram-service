@@ -9,5 +9,5 @@ class BookingRepositoryInterface(ABC):
         raise NotImplemented
 
     @abstractmethod
-    async def delete_booking(self, client_id: int, booking_id: int) -> typing.List[Booking]:
+    async def delete_booking(self, booking_id: int) -> typing.List[Booking]:
         raise NotImplemented
