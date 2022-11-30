@@ -1,6 +1,6 @@
 from pydantic import BaseModel
+from api.data_structures import ErrorType
 
 
 class GeneralDataStructure(BaseModel):
-    is_exception: bool = False
-    exception_data: str = ''
+    error_data: ErrorType = ErrorType()

@@ -1,5 +1,7 @@
 import json, requests
 from aiohttp import ClientSession
+from api.data_structures import ApiOutput
+from api.error_handler.error_handler import handle_error_async_api
 
 
 class ApiAsync:
@@ -42,8 +44,8 @@ class ApiAsync:
             async with self.__get_session.get(
                 url, params=params, timeout=self.timeout
             ) as output:
-                text = await output.text()
-                return text
+           
+                return output
         except:
             print("error - get")
 
@@ -51,8 +53,8 @@ class ApiAsync:
         try:
             url = self.__base_url + url_path
             async with self.__post_session.post(url=url, data=data) as output:
-                text = await output.text()
-                return text
+          
+                return output
         except:
             print("error - post")
 
@@ -60,8 +62,8 @@ class ApiAsync:
         try:
             url = self.__base_url + url_path
             async with self.__put_session.put(url=url, data=data) as output:
-                text = await output.text()
-                return text
+            
+                return output
         except:
             print("error - put")
 
@@ -69,8 +71,8 @@ class ApiAsync:
         try:
             url = self.__base_url + url_path
             async with self.__delete_session.delete(url=url, params=params) as output:
-                text = await output.text()
-                return text
+    
+                return output
         except:
             print("error - delete")
 
@@ -111,8 +113,8 @@ class ApiSync:
             output = requests.get(
                 url, params=params, timeout=self.timeout, headers=self.get_session_args
             )
-            text = output.text
-            return text
+           
+            return output
         except:
             print("error - get")
 
@@ -122,8 +124,8 @@ class ApiSync:
             output = requests.post(
                 url, timeout=self.timeout, headers=self.post_session_args, data=data
             )
-            text = output.text
-            return text
+         
+            return output
         except:
             print("error - post")
 
@@ -131,8 +133,8 @@ class ApiSync:
         try:
             url = self.__base_url + url_path
             output = requests.put(url=url, data=data, timeout=self.timeout, headers=self.post_session_args)
-            text = output.text
-            return text
+        
+            return output
         except:
             print("error - put")
 
@@ -140,7 +142,7 @@ class ApiSync:
         try:
             url = self.__base_url + url_path
             output = requests.delete(url=url, data=data, timeout=self.timeout, headers=self.delete_session_args)
-            text = output.text
-            return text
+          
+            return output
         except:
             print("error - delete")

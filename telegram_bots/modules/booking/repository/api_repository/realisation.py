@@ -4,9 +4,13 @@ from telegram_bots.modules.booking.data_structures import User, Booking, Service
 from telegram_bots.modules.booking.repository.api_repository.interface import (
     BookingRepositoryInterface,
 )
+from aiohttp.client_reqrep import ClientResponse
+from requests import Response
+
+
 from api.api import ApiAsync
-
-
+from api.data_structures import ApiOutput, ErrorType
+from api.error_handler.error_handler import handle_error_async_api
 
 # from faker import Faker
 # fake = Faker(locale='ru_RU')
@@ -28,22 +32,24 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
             connection_data = json.loads(f.read())
         return connection_data
 
-    def __is_exception(self, response: str):
+    async def __error_checker(self, response: ClientResponse):
+        response_text = await response.text()
+
         if response:
-            if "available" in response or "message" in response:
-                return True
+            return handle_error_async_api(response=response, response_text=response_text)
 
         elif not response:
-            return True
-        
+            return ErrorType(timeout=True, has_error=True)
+
     async def get_users_bookings(self, tg_id: int) -> List[Booking]:
         api = ApiAsync()
         bookings = []
         response = await api.get(
             url_path=self.url + "/my_booking", params={"id_tg": tg_id}
         )
-        
-        if not self.__is_exception(response):
+        error_check = await self.__error_checker(response)
+
+        if not error_check.has_error:
             response = json.loads(response)
 
             for selected_booking in response:
@@ -86,14 +92,20 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
 
                 bookings.append(parsed)
         
-        return bookings
-        
+
+        output = ApiOutput(errors=error_check, data=bookings)
+        return output
+
 
     async def delete_booking(self,  booking_id: int) -> List[Booking]:
         api = ApiAsync()
         response = await api.delete(
             url_path=self.url, params={"id_bookings": booking_id}
         )
+
+        error_check = await self.__error_checker(response)
+
         print('resp', response)
-        if not self.__is_exception(response):
-            return True
+        if not error_check.has_error:
+            return ApiOutput(data=True, errors=error_check)
+        return ApiOutput(data=False, errors=error_check)

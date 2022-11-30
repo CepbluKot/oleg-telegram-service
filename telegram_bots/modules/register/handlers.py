@@ -11,10 +11,11 @@ message_delete_delay = 5
 
 
 class RegistrationFSM(StatesGroup):
+    wait_for_name = State()
     wait_for_contact = State()
 
 
-async def ask_for_phone_number_input(message: types.Message):
+async def ask_for_name_input(message: types.Message):
     response = await register_repository_async.get_user(message.from_user.id)
     
     if response and not response.is_exception:
@@ -22,21 +23,29 @@ async def ask_for_phone_number_input(message: types.Message):
             await message.answer("Вы уже зарегистрированы")
 
         else:
-            buttons = [
-                    types.InlineKeyboardButton(
-                        text="Да", callback_data="enter_phone"),
-                    types.InlineKeyboardButton(
-                        text="Нет", callback_data="dont_enter_phone"),
-                ]
-            keyboard = types.InlineKeyboardMarkup(row_width=2)
-            keyboard.add(*buttons)
-
-            await message.answer("Хотите ввести свой номер телефона?", reply_markup=keyboard)
+            await message.answer("Как вас зовут?")
+            await RegistrationFSM.wait_for_name.set()
     else:
         await message.answer("В настоящий момент сервис не доступен, пожалуйста. повторите позже")
 
 
-async def enter_phone(call: types.CallbackQuery):
+async def ask_for_phone_number_input(message: types.Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
+
+    buttons = [
+            types.InlineKeyboardButton(
+                text="Да", callback_data="enter_phone"),
+            types.InlineKeyboardButton(
+                text="Нет", callback_data="dont_enter_phone"),
+        ]
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    keyboard.add(*buttons)
+
+    await message.answer("Хотите ввести свой номер телефона?", reply_markup=keyboard)
+  
+
+async def enter_phone(call: types.CallbackQuery, state: FSMContext):
     await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
@@ -94,8 +103,9 @@ def phone_number_check_contact(message: types.Message):
     user.phone = message.contact.phone_number
     response = register_repository_sync.update_user(user)
 
-    if 'Please provide a valid mobile phone number' in response.exception_data:
-        return True
+    if response.exception_data:
+        if 'Please provide a valid mobile phone number' in response.exception_data:
+            return True
 
 
 def phone_number_check_text(message: types.Message):
@@ -114,18 +124,24 @@ async def wrong_phone_number_msg(message: types.Message):
     register_temporary_messages_repository.append(msg)
 
 
-async def dont_enter_phone(call: types.CallbackQuery):
+async def dont_enter_phone(call: types.CallbackQuery, state: FSMContext):
     msg = await call.message.answer('Окей, идентификация по tg id')
     await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-   
+    await state.finish()
+
     await asyncio.sleep(message_delete_delay)
     await bot.delete_message(msg.chat.id, msg.message_id)
 
 
 def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(
-        ask_for_phone_number_input,
+        ask_for_name_input,
         commands="start",
+    )
+    
+    dp.register_message_handler(
+        ask_for_phone_number_input,
+        state=RegistrationFSM.wait_for_name
     )
 
     dp.register_message_handler(
@@ -141,5 +157,5 @@ def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(
         recieve_phone_number_text, state=RegistrationFSM.wait_for_contact
     )
-    dp.register_callback_query_handler(dont_enter_phone, text="dont_enter_phone")
-    dp.register_callback_query_handler(enter_phone, text="enter_phone")
+    dp.register_callback_query_handler(dont_enter_phone, state=RegistrationFSM.wait_for_name, text="dont_enter_phone")
+    dp.register_callback_query_handler(enter_phone, state=RegistrationFSM.wait_for_name, text="enter_phone")
