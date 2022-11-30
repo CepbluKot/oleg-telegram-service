@@ -41,10 +41,10 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
         elif not response:
             return ErrorType(timeout=True, has_error=True)
 
-    async def get_users_bookings(self, tg_id: int) -> List[Booking]:
+    async def get_users_bookings(self, tg_id: int) -> ApiOutput:
         api = ApiAsync()
         bookings = []
-        response = await api.get(
+        output, response_text = await api.get(
             url_path=self.url + "/my_booking", params={"id_tg": tg_id}
         )
         error_check = await self.__error_checker(response)
@@ -97,15 +97,16 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
         return output
 
 
-    async def delete_booking(self,  booking_id: int) -> List[Booking]:
+    async def delete_booking(self,  booking_id: int) -> ApiOutput:
         api = ApiAsync()
-        response = await api.delete(
+        output, response_text = await api.delete(
             url_path=self.url, params={"id_bookings": booking_id}
         )
 
         error_check = await self.__error_checker(response)
 
-        print('resp', response)
+        
         if not error_check.has_error:
             return ApiOutput(data=True, errors=error_check)
+
         return ApiOutput(data=False, errors=error_check)

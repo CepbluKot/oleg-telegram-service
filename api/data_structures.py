@@ -9,7 +9,7 @@ class ErrorType(pydantic.BaseModel):
     wrong_phone_number: bool = False
     unauthorized: bool = False
     user_already_exists: bool = False
-
+    booking_doesnt_exist: bool = False
 
 class ApiOutput():
     def __init__(self, data, errors: ErrorType) -> None:

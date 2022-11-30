@@ -27,9 +27,10 @@ class RegisterRepositoryRealisationDatabaseAsync(RegisterRepositoryInterface):
             print("error - __get_connection_data")
 
 
-    async def __error_checker(self, response: ClientResponse):
+    async def __error_checker(self, response: ClientResponse, response_text: str):
+        
         response_text = await response.text()
-
+        print('response_text',response_text)
         if response:
             return handle_error_async_api(response=response, response_text=response_text)
 
@@ -37,57 +38,57 @@ class RegisterRepositoryRealisationDatabaseAsync(RegisterRepositoryInterface):
             return ErrorType(timeout=True, has_error=True)
 
 
-    async def get_user(self, tg_id: int) -> User:
-        try:
+    async def get_user(self, tg_id: int) -> ApiOutput:
+        # try:
             api = ApiAsync()
-            response = await api.get(
+            output, response_text = await api.get(
                 url_path=self.url + "/info_client", params={"tg_id": tg_id}
             )
             error_check = await self.__error_checker(response)
 
-            # if not self.__is_exception(response=response):
-            #     response = json.loads(response)
-            #     parsed = UserForParse.parse_raw(response[0])
-            #     output = User(name=parsed.name, tg_id=parsed.tg_id, phone=parsed.phone)
-            output = User()
-            # else:
-            #     output = User(is_exception=True, exception_data=str(response))
-            #     print('output',output)
+            if not error_check.has_error:
+                response = json.loads(response)
+                output = User(name=response['name'], tg_id=response['tg_id'], phone=response['phone'])
             
-            return ApiOutput(data=output, errors=error_check)
-        except:
-            print("error - get_user")
+            else:
+                output = User()
+            
 
-    async def update_user(self, data: User) -> User:
+            return ApiOutput(data=output, errors=error_check)
+        # except:
+        #     print("error - get_user")
+
+
+    async def update_user(self, data: User) -> ApiOutput:
         try:
             api = ApiAsync()
-            response = await api.put(url_path=self.url, data=data.json())
+            output, response_text = await api.put(url_path=self.url, data=data.json())
             response = json.loads(response)
-            if not self.__is_exception(response):
-                print('resp', response)
-                # parse = UserForParse.parse_raw(response[0])
+
+            error_check = await self.__error_checker(response)
+
+            if not error_check.has_error:
                 output = User(tg_id=response['tg_id'])
             else:
-                output = User(is_exception=True, exception_data=str(response))
+                output = User()
         
             return ApiOutput(data=output, errors=error_check)
         except:
             print("error - update_user")
 
+
     async def register_user(self, data: User) -> User:
         try:
             api = ApiAsync()
-            response = await api.post(url_path=self.url, data=data.json())
+            output, response_text = await api.post(url_path=self.url, data=data.json())
             response = json.loads(response)
 
             error_check = await self.__error_checker(response)
             if not error_check.has_error:
-                
-                print('resp', response)
                
                 output = User(tg_id=response['tg_id'], phone=response['phone'], name=response['name'])
             else:
-                output = User(is_exception=True, exception_data=str(response))
+                output = User()
         
             return ApiOutput(data=output, errors=error_check)
         except:
@@ -118,56 +119,55 @@ class RegisterRepositoryRealisationDatabaseSync(RegisterRepositoryInterface):
             return ErrorType(timeout=True, has_error=True)
 
 
-    def get_user(self, tg_id: int) -> User:
+    def get_user(self, tg_id: int) -> ApiOutput:
         try:
-            
             response = self.api.get(
                 url_path=self.url + "/info_client", params={"tg_id": tg_id}
             )
             error_check = self.__error_checker(response)
-            # if not self.__is_exception(response=response):
-            #     response = json.loads(response)
-            #     parsed = UserForParse.parse_raw(response[0])
-            #     output = User(name=parsed.name, tg_id=parsed.tg_id, phone=parsed.phone)
-            output = User()
-            # else:
-            #     output = User(is_exception=True, exception_data=str(response))
-            #     print('output',output)
+
+            if not error_check.has_error:
+                response = json.loads(response)
+                output = User(name=response['name'], tg_id=response['tg_id'], phone=response['phone'])
             
+            else:
+                output = User()
+  
             return ApiOutput(data=output, errors=error_check)
 
         except:
             print("error - get_user")
 
-    def update_user(self, data: User) -> User:
+    def update_user(self, data: User) -> ApiOutput:
         try:
             response = self.api.put(url_path=self.url, data=data.json())
             response = json.loads(response)
             
             error_check = self.__error_checker(response)
+
             if not error_check.has_error:
-                print('resp', response)
-                # parse = UserForParse.parse_raw(response[0])
                 output = User(tg_id=response['tg_id'], phone=response['phone'], name=response['name'])
+            
             else:
-                output = User(is_exception=True, exception_data=str(response))
+                output = User()
         
             return ApiOutput(data=output, errors=error_check)
         except:
             print("error - update_user")
 
 
-    def register_user(self, data: User) -> User:
+    def register_user(self, data: User) -> ApiOutput:
         try:
             response = self.api.post(url_path=self.url, data=data.json())
             response = json.loads(response)
 
             error_check = self.__error_checker(response)
+
             if not error_check.has_error:    
-                print('resp', response)
+ 
                 output = User(tg_id=response['tg_id'], phone=response['phone'], name=response['name'])
             else:
-                output = User(is_exception=True, exception_data=str(response))
+                output = User()
         
             return ApiOutput(data=output, errors=error_check)
         except:

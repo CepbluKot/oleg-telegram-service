@@ -25,6 +25,10 @@ def handle_error_async_api(response: ClientResponse, response_text: str):
         error_info.user_already_exists = True
         error_info.has_error = True
 
+    if 'not find' in response_text:
+        error_info.booking_doesnt_exist = True
+        error_info.has_error = True
+
     return error_info
 
 def handle_error_sync_api(response: Response):

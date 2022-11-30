@@ -44,8 +44,8 @@ class ApiAsync:
             async with self.__get_session.get(
                 url, params=params, timeout=self.timeout
             ) as output:
-           
-                return output
+                response_text = await output.text()
+                return output, response_text
         except:
             print("error - get")
 
@@ -53,8 +53,8 @@ class ApiAsync:
         try:
             url = self.__base_url + url_path
             async with self.__post_session.post(url=url, data=data) as output:
-          
-                return output
+                response_text = await output.text()
+                return output, response_text
         except:
             print("error - post")
 
@@ -62,8 +62,8 @@ class ApiAsync:
         try:
             url = self.__base_url + url_path
             async with self.__put_session.put(url=url, data=data) as output:
-            
-                return output
+                response_text = await output.text()
+                return output, response_text
         except:
             print("error - put")
 
@@ -71,8 +71,8 @@ class ApiAsync:
         try:
             url = self.__base_url + url_path
             async with self.__delete_session.delete(url=url, params=params) as output:
-    
-                return output
+                response_text = await output.text()
+                return output, response_text
         except:
             print("error - delete")
 
