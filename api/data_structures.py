@@ -10,6 +10,7 @@ class ErrorType(pydantic.BaseModel):
     unauthorized: bool = False
     user_already_exists: bool = False
     booking_doesnt_exist: bool = False
+    user_not_found: bool = False
 
 class ApiOutput():
     def __init__(self, data, errors: ErrorType) -> None:

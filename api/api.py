@@ -38,7 +38,7 @@ class ApiAsync:
             print("error - __get_connection_data")
 
     async def get(self, url_path: str, params=None):
-        try:
+        # try:
             url = self.__base_url + url_path
             
             async with self.__get_session.get(
@@ -46,8 +46,10 @@ class ApiAsync:
             ) as output:
                 response_text = await output.text()
                 return output, response_text
-        except:
-            print("error - get")
+            
+        # except:
+        #     print("error - get")
+            return None, None
 
     async def post(self, url_path: str, data):
         try:

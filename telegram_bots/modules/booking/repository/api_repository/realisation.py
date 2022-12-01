@@ -38,7 +38,9 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
         if response:
             return handle_error_async_api(response=response, response_text=response_text)
 
-        elif not response:
+        else:
+            print('response',response)
+            
             return ErrorType(timeout=True, has_error=True)
 
     async def get_users_bookings(self, tg_id: int) -> ApiOutput:
@@ -99,7 +101,7 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
 
     async def delete_booking(self,  booking_id: int) -> ApiOutput:
         api = ApiAsync()
-        output, response_text = await api.delete(
+        response, response_text = await api.delete(
             url_path=self.url, params={"id_bookings": booking_id}
         )
 

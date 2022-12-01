@@ -12,7 +12,8 @@ class RegisterTemporaryMessagesRepository:
         self.repo[data.chat.id].append(data)
 
     def read(self, tg_id: int):
-        return self.repo[tg_id]
+        if tg_id in self.repo:
+            return self.repo[tg_id]
 
     def delete(self, tg_id: int):
         self.repo.pop(tg_id, None)

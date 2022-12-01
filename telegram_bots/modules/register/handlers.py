@@ -12,29 +12,36 @@ from telegram_bots.modules.register.repository.temporary_register_data.output im
 message_delete_delay = 5
 
 
-class RegistrationFSM(StatesGroup):
+class WaitForNameFSM(StatesGroup):
     wait_for_name = State()
+
+class WaitForContactFSM(StatesGroup):
     wait_for_contact = State()
 
 
 async def ask_for_name_input(message: types.Message):
     response = await register_repository_async.get_user(message.from_user.id)
     
-    if not response.errors.has_error:
-        if response.data.tg_id == message.chat.id:
-            await message.answer("Вы уже зарегистрированы")
+    if response:
+        if not response.errors.has_error:
+            if response.data:
+                if response.data.tg_id == message.chat.id:
+                    await message.answer("Вы уже зарегистрированы")
 
+            else:
+                await message.answer("Как вас зовут?")
+                await WaitForNameFSM.wait_for_name.set()
+    
         else:
-            await message.answer("Как вас зовут?")
-            await RegistrationFSM.wait_for_name.set()
+            if response.errors.timeout:
+                await message.answer("В настоящий момент сервис не доступен, пожалуйста, повторите позже")
+            
+            else:
+                await message.answer("Возникла непредвиденная ошибка")
     
     else:
-        if response.errors.timeout:
-            await message.answer("В настоящий момент сервис не доступен, пожалуйста, повторите позже")
-        
-        else:
-            await message.answer("Возникла непредвиденная ошибка")
-        
+        await message.answer("В настоящий момент сервис не доступен, пожалуйста, повторите позже")
+            
 
 async def ask_for_phone_number_input(message: types.Message, state: FSMContext):
     data = User(name=message.text, tg_id=message.chat.id)
@@ -52,10 +59,11 @@ async def ask_for_phone_number_input(message: types.Message, state: FSMContext):
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     keyboard.add(*buttons)
 
+    await state.finish()
     await message.answer("Хотите ввести свой номер телефона?", reply_markup=keyboard)
-  
+    
 
-async def enter_phone(call: types.CallbackQuery, state: FSMContext):
+async def enter_phone(call: types.CallbackQuery):
     await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
@@ -69,7 +77,7 @@ async def enter_phone(call: types.CallbackQuery, state: FSMContext):
     )
 
     register_temporary_messages_repository.append(msg)
-    await RegistrationFSM.wait_for_contact.set()
+    await WaitForContactFSM.wait_for_contact.set()
 
 
 async def recieve_phone_number_contact(message: types.Message, state: FSMContext):
@@ -81,6 +89,7 @@ async def recieve_phone_number_contact(message: types.Message, state: FSMContext
     register_temporary_messages_repository.append(final_msg)
     # print('message.contact.phone_number', message.contact.phone_number, 'text', message.text)
     # do smth in api
+
     await state.finish()
 
     data = temporary_register_data.read(message.chat.id)
@@ -89,7 +98,7 @@ async def recieve_phone_number_contact(message: types.Message, state: FSMContext
     await asyncio.sleep(message_delete_delay)
     for msg in register_temporary_messages_repository.read(final_msg.chat.id):
         await bot.delete_message(msg.chat.id, msg.message_id)
-        
+
     register_temporary_messages_repository.delete(chat_id)
 
 
@@ -107,7 +116,6 @@ async def recieve_phone_number_text(message: types.Message, state: FSMContext):
     data = temporary_register_data.read(message.chat.id)
     data.phone = message.text
 
-
     await asyncio.sleep(message_delete_delay)
     for msg in register_temporary_messages_repository.read(final_msg.chat.id):
         await bot.delete_message(msg.chat.id, msg.message_id)
@@ -124,11 +132,13 @@ def phone_number_check_contact(message: types.Message):
         return True
 
 
-def phone_number_check_text(message: types.Message, state: FSMContext):
+def phone_number_check_text(message: types.Message):
     data = temporary_register_data.read(message.chat.id)
-    data.phone = message.contact.phone_number
-    response = register_repository_sync.update_user(data)
-
+    data.phone = message.text
+    
+    
+    response = register_repository_sync.register_user(data)
+    print('response',response.errors)
     if response.errors.wrong_phone_number:
         return True
 
@@ -139,10 +149,9 @@ async def wrong_phone_number_msg(message: types.Message):
     register_temporary_messages_repository.append(msg)
 
 
-async def dont_enter_phone(call: types.CallbackQuery, state: FSMContext):
+async def dont_enter_phone(call: types.CallbackQuery, ):
     msg = await call.message.answer('Окей, идентификация по tg id')
     await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-    await state.finish()
 
     await asyncio.sleep(message_delete_delay)
     await bot.delete_message(msg.chat.id, msg.message_id)
@@ -152,23 +161,31 @@ async def service_is_not_alive_msg(message: types.Message, state: FSMContext):
     chat_id = message.chat.id
     msg = await message.answer('В текущий момент сервис отключен, пожалуйста, повторите позже')
     
-    if state is not None:
+    if state:
+        print('state',state)
         await state.finish()
 
     await asyncio.sleep(message_delete_delay)
     await bot.delete_message(msg.chat.id, msg.message_id)
 
-    for msg in register_temporary_messages_repository.read(chat_id):
-        await bot.delete_message(msg.chat.id, msg.message_id)
+
+    messages_to_delete = register_temporary_messages_repository.read(chat_id)
+
+    if messages_to_delete:
+        for msg in messages_to_delete:
+            await bot.delete_message(msg.chat.id, msg.message_id)
+    
     register_temporary_messages_repository.delete(chat_id)
 
 
-
 def check_is_service_alive():
-    output = register_repository_sync.get_user(0) 
-    if output.errors.timeout:
-        return True
+    output = register_repository_sync.get_user(-228) 
+
+    if output:
+        if output.errors.timeout:
+            return True
     return False
+
 
 def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(
@@ -178,23 +195,23 @@ def register_registration_handlers(dp: Dispatcher):
     
     dp.register_message_handler(
         ask_for_phone_number_input,
-        state=RegistrationFSM.wait_for_name
+        state=WaitForNameFSM.wait_for_name
     )
 
-    dp.register_message_handler(service_is_not_alive_msg, lambda msg: check_is_service_alive(), state='*')
+    dp.register_message_handler(service_is_not_alive_msg, lambda msg: check_is_service_alive(), state=WaitForContactFSM.wait_for_contact)
 
     dp.register_message_handler(
-        wrong_phone_number_msg, lambda msg: phone_number_check_contact(msg), state=RegistrationFSM.wait_for_contact, content_types="contact"
+        wrong_phone_number_msg, lambda msg: phone_number_check_contact(msg), state=WaitForContactFSM.wait_for_contact, content_types="contact"
     )
     dp.register_message_handler(
-        wrong_phone_number_msg, lambda msg: phone_number_check_text(msg), state=RegistrationFSM.wait_for_contact
+        wrong_phone_number_msg, lambda msg: phone_number_check_text(msg), state=WaitForContactFSM.wait_for_contact
     )
 
     dp.register_message_handler(
-        recieve_phone_number_contact, state=RegistrationFSM.wait_for_contact, content_types="contact"
+        recieve_phone_number_contact, state=WaitForContactFSM.wait_for_contact, content_types="contact"
     )
     dp.register_message_handler(
-        recieve_phone_number_text, state=RegistrationFSM.wait_for_contact
+        recieve_phone_number_text, state=WaitForContactFSM.wait_for_contact
     )
-    dp.register_callback_query_handler(dont_enter_phone, state=RegistrationFSM.wait_for_name, text="dont_enter_phone")
-    dp.register_callback_query_handler(enter_phone, state=RegistrationFSM.wait_for_name, text="enter_phone")
+    dp.register_callback_query_handler(dont_enter_phone, text="dont_enter_phone")
+    dp.register_callback_query_handler(enter_phone, text="enter_phone")
