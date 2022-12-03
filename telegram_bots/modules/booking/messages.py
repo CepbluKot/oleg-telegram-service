@@ -67,7 +67,7 @@ class BookingMessages:
             current_page_id -= 1
             all_bookings = await booking_repository_abstraction.get_users_bookings(call.message.chat.id)
             message_text, buttons = self.booking_view_menu_message(
-                bookings=all_bookings, current_begin_page_id=current_page_id)
+                bookings=all_bookings.data, current_begin_page_id=current_page_id)
 
             keyboard = types.InlineKeyboardMarkup(row_width=3)
             keyboard.add(*buttons)
@@ -85,11 +85,11 @@ class BookingMessages:
 
         all_bookings = await booking_repository_abstraction.get_users_bookings(call.message.chat.id)
 
-        if current_page_id + 1 < math.ceil(len(all_bookings) / bookings_per_page):
+        if current_page_id + 1 < math.ceil(len(all_bookings.data) / bookings_per_page):
             current_page_id += 1
 
             message_text, buttons = self.booking_view_menu_message(
-                bookings=all_bookings, current_begin_page_id=current_page_id)
+                bookings=all_bookings.data, current_begin_page_id=current_page_id)
 
             keyboard = types.InlineKeyboardMarkup(row_width=3)
             keyboard.add(*buttons)

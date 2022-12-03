@@ -226,8 +226,6 @@ async def change_name_final(message: types.Message, state: FSMContext):
     await message.answer('Данные обновлены')
     await state.finish()
 
-    # do smth in api
-
 
 async def change_phone_number(call: types.CallbackQuery):
     await call.message.answer('Введите новый номер телефона или отправьте свой контакт')

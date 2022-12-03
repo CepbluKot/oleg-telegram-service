@@ -16,7 +16,7 @@ messages = BookingMessages()
 async def get_bookings(message: types.Message):
     bookings = await booking_repository_abstraction.get_users_bookings(message.chat.id)
 
-    
+
     if not bookings.errors.has_error:
         if len(bookings.data):
             user_boking_viewer = booking_viewer_repository.read(message.chat.id)
@@ -31,7 +31,7 @@ async def get_bookings(message: types.Message):
 
             
 
-            booking_message_text, buttons = messages.booking_view_menu_message(bookings, user_boking_viewer.page_id)
+            booking_message_text, buttons = messages.booking_view_menu_message(bookings.data, user_boking_viewer.page_id)
             
             keyboard = types.InlineKeyboardMarkup(row_width=3)
             keyboard.add(*buttons)

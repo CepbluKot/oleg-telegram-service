@@ -12,14 +12,13 @@ from api.api import ApiAsync
 from api.data_structures import ApiOutput, ErrorType
 from api.error_handler.error_handler import handle_error_async_api
 
-# from faker import Faker
-# fake = Faker(locale='ru_RU')
+from faker import Faker
+fake = Faker(locale='ru_RU')
 
 
-# usr = User(name='olega', tg_id=14, phone='89005553535')
-# services = [Service(id=n, name_service=fake.job()) for n in range(12)]
-# sample = [Booking(booking_day_start=str(datetime.date.today()), booking_time_start=str(time.ctime()), booking_day_end=str(datetime.date.today()), booking_time_end=str(time.ctime()), comment=f' booka {x}', connect_event=0, connect_user=usr, subscription_service=services[x], id_booking=0) for x in range(12)]
-
+usr = User(name='olega', tg_id=14, phone='89005553535')
+services = [Service(id=n, name_service=fake.job()) for n in range(12)]
+sample = [Booking(booking_day_start=str(datetime.date.today()), booking_time_start=str(time.ctime()), booking_day_end=str(datetime.date.today()), booking_time_end=str(time.ctime()), comment=f' booka {x}', connect_event=0, connect_user=usr, subscription_service=services[x], id_booking=0) for x in range(12)]
 
 
 class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
@@ -46,13 +45,13 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
     async def get_users_bookings(self, tg_id: int) -> ApiOutput:
         api = ApiAsync()
         bookings = []
-        output, response_text = await api.get(
+        response, response_text = await api.get(
             url_path=self.url + "/my_booking", params={"id_tg": tg_id}
         )
         error_check = await self.__error_checker(response)
 
         if not error_check.has_error:
-            response = json.loads(response)
+            response = json.loads(response_text)
 
             for selected_booking in response:
 
@@ -96,6 +95,9 @@ class BookingRepositoryRealisationDatabase(BookingRepositoryInterface):
         
 
         output = ApiOutput(errors=error_check, data=bookings)
+        
+
+        output = ApiOutput(errors=error_check, data=sample)
         return output
 
 
