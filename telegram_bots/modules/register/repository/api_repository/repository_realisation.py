@@ -158,7 +158,7 @@ class RegisterRepositoryRealisationDatabaseSync(RegisterRepositoryInterface):
 
 
     def update_user(self, data: User) -> ApiOutput:
-        # try:
+        try:
             response = self.api.put(url_path=self.url, data=data.json())
 
 
@@ -177,9 +177,9 @@ class RegisterRepositoryRealisationDatabaseSync(RegisterRepositoryInterface):
                 response = None
         
             return ApiOutput(data=response, errors=error_check)
-        # except:
-        #     print("error - update_user")
-        #     return ApiOutput(data=None, errors=ErrorType(has_error=True, timeout=True))
+        except:
+            print("error - update_user")
+            return ApiOutput(data=None, errors=ErrorType(has_error=True, timeout=True))
 
 
     def register_user(self, data: User) -> ApiOutput:

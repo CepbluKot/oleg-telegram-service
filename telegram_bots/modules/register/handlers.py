@@ -250,10 +250,12 @@ def change_phone_check_contact(message: types.Message):
     user_data = register_repository_sync.get_user(message.chat.id).data
     user_data.phone = new_phone
     
+
     response = register_repository_sync.update_user(user_data)
     if response:
         if response.errors.wrong_phone_number:
             return True
+
 
 async def wrong_new_phone_number(message: types.Message):
     await message.answer('Неправильный формат номера, пожалуйста, введите заново')
@@ -294,6 +296,11 @@ def register_registration_handlers(dp: Dispatcher):
 
 
     dp.register_callback_query_handler(change_register_data, text='change_register_data')
+    
+    
+    dp.register_message_handler(service_is_not_alive_msg, lambda msg: check_is_service_alive(), state=ChangeNameFSM.wait_for_new_name)
+    dp.register_message_handler(service_is_not_alive_msg, lambda msg: check_is_service_alive(), state=ChangePhoneNumberFSM.wait_for_new_phone)
+    
     dp.register_callback_query_handler(change_name, text='change_name')
     dp.register_message_handler(change_name_final, state=ChangeNameFSM.wait_for_new_name)
     
@@ -308,3 +315,4 @@ def register_registration_handlers(dp: Dispatcher):
     )
     
     dp.register_message_handler(change_phone_final, state=ChangePhoneNumberFSM.wait_for_new_phone)
+    dp.register_message_handler(change_phone_final, state=ChangePhoneNumberFSM.wait_for_new_phone, content_types='contact')
