@@ -18,6 +18,12 @@ class WaitForNameFSM(StatesGroup):
 class WaitForContactFSM(StatesGroup):
     wait_for_contact = State()
 
+class ChangePhoneNumberFSM(StatesGroup):
+    wait_for_new_phone = State()
+
+class ChangeNameFSM(StatesGroup):
+    wait_for_new_name = State()
+
 
 async def ask_for_name_input(message: types.Message):
     response = await register_repository_async.get_user(message.from_user.id)
@@ -26,7 +32,14 @@ async def ask_for_name_input(message: types.Message):
         if not response.errors.has_error:
             if response.data:
                 if response.data.tg_id == message.chat.id:
-                    await message.answer("Вы уже зарегистрированы")
+
+                    buttons = [
+                        types.InlineKeyboardButton(text="Редактировать профиль", callback_data="change_register_data"),
+                    ]
+                    keyboard = types.InlineKeyboardMarkup(row_width=1)
+                    keyboard.add(*buttons)
+
+                    await message.answer("Вы уже зарегистрированы", reply_markup=keyboard)
 
             else:
                 await message.answer("Как вас зовут?")
@@ -109,8 +122,6 @@ async def recieve_phone_number_text(message: types.Message, state: FSMContext):
 
     register_temporary_messages_repository.append(final_msg)
 
-    # print('message.contact.phone_number', message.contact.phone_number, 'text', message.text)
-    # do smth in api
     await state.finish()
 
     data = temporary_register_data.read(message.chat.id)
@@ -133,12 +144,12 @@ def phone_number_check_contact(message: types.Message):
 
 
 def phone_number_check_text(message: types.Message):
+    
     data = temporary_register_data.read(message.chat.id)
     data.phone = message.text
     
-    
     response = register_repository_sync.register_user(data)
-    print('response',response.errors)
+    
     if response.errors.wrong_phone_number:
         return True
 
@@ -179,12 +190,77 @@ async def service_is_not_alive_msg(message: types.Message, state: FSMContext):
 
 
 def check_is_service_alive():
-    output = register_repository_sync.get_user(-228) 
+    output = register_repository_sync.get_user(231) 
 
     if output:
         if output.errors.timeout:
             return True
     return False
+
+
+async def change_register_data(call: types.CallbackQuery):
+    buttons = [
+        types.InlineKeyboardButton(text="Имя", callback_data="change_name"),
+        types.InlineKeyboardButton(text="Номер телефона", callback_data="change_phone_number"),
+    ]
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(*buttons)
+
+    await call.message.answer("Что меняем?", reply_markup=keyboard)
+
+
+async def change_name(call: types.CallbackQuery):
+    await call.message.answer('Введите новое имя')
+    await ChangeNameFSM.wait_for_new_name.set()
+
+
+async def change_name_final(message: types.Message, state: FSMContext):
+    new_name = message.text
+
+    user_data = await register_repository_async.get_user(message.chat.id)
+    user_data = user_data.data
+    user_data.name = new_name
+
+    await register_repository_async.update_user(user_data)
+
+    await message.answer('Данные обновлены')
+    await state.finish()
+
+    # do smth in api
+
+
+async def change_phone_number(call: types.CallbackQuery):
+    await call.message.answer('Введите новый номер телефона или отправьте свой контакт')
+    await ChangePhoneNumberFSM.wait_for_new_phone.set()
+
+
+def change_phone_check_text(message: types.Message):
+    new_phone = message.text
+    user_data = register_repository_sync.get_user(message.chat.id).data
+    user_data.phone = new_phone
+    
+    response = register_repository_sync.update_user(user_data)
+    if response:
+        if response.errors.wrong_phone_number:
+            return True
+
+
+def change_phone_check_contact(message: types.Message):
+    new_phone = message.contact.phone_number
+    user_data = register_repository_sync.get_user(message.chat.id).data
+    user_data.phone = new_phone
+    
+    response = register_repository_sync.update_user(user_data)
+    if response:
+        if response.errors.wrong_phone_number:
+            return True
+
+async def wrong_new_phone_number(message: types.Message):
+    await message.answer('Неправильный формат номера, пожалуйста, введите заново')
+
+async def change_phone_final(message: types.Message, state: FSMContext):
+    await message.answer('Данные обновлены')
+    await state.finish()
 
 
 def register_registration_handlers(dp: Dispatcher):
@@ -215,3 +291,20 @@ def register_registration_handlers(dp: Dispatcher):
     )
     dp.register_callback_query_handler(dont_enter_phone, text="dont_enter_phone")
     dp.register_callback_query_handler(enter_phone, text="enter_phone")
+
+
+    dp.register_callback_query_handler(change_register_data, text='change_register_data')
+    dp.register_callback_query_handler(change_name, text='change_name')
+    dp.register_message_handler(change_name_final, state=ChangeNameFSM.wait_for_new_name)
+    
+
+    dp.register_callback_query_handler(change_phone_number, text='change_phone_number')
+
+    dp.register_message_handler(
+        wrong_new_phone_number, lambda msg: change_phone_check_contact(msg), state=ChangePhoneNumberFSM.wait_for_new_phone, content_types="contact"
+    )
+    dp.register_message_handler(
+        wrong_new_phone_number, lambda msg: change_phone_check_text(msg), state=ChangePhoneNumberFSM.wait_for_new_phone
+    )
+    
+    dp.register_message_handler(change_phone_final, state=ChangePhoneNumberFSM.wait_for_new_phone)

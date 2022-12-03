@@ -37,7 +37,7 @@ class RegisterRepositoryRealisationDatabaseAsync(RegisterRepositoryInterface):
 
 
     async def get_user(self, tg_id: int) -> ApiOutput:
-        # try:
+        try:
             api = ApiAsync()
 
             response, response_text = await api.get(
@@ -59,9 +59,9 @@ class RegisterRepositoryRealisationDatabaseAsync(RegisterRepositoryInterface):
                 output = None
 
             return ApiOutput(data=output, errors=error_check)
-        # except:
-        #     print("error - get_user")
-            
+        except:
+            print("error - get_user")
+            return ApiOutput(data=None, errors=ErrorType(has_error=True, timeout=True))
 
     async def update_user(self, data: User) -> ApiOutput:
         try:
@@ -83,7 +83,7 @@ class RegisterRepositoryRealisationDatabaseAsync(RegisterRepositoryInterface):
             return ApiOutput(data=response, errors=error_check)
         except:
             print("error - update_user")
-
+            return ApiOutput(data=None, errors=ErrorType(has_error=True, timeout=True))
 
     async def register_user(self, data: User) -> User:
         try:
@@ -105,6 +105,7 @@ class RegisterRepositoryRealisationDatabaseAsync(RegisterRepositoryInterface):
             return ApiOutput(data=response, errors=error_check)
         except:
             print("error - update_user")
+            return ApiOutput(data=None, errors=ErrorType(has_error=True, timeout=True))
 
 
 class RegisterRepositoryRealisationDatabaseSync(RegisterRepositoryInterface):
@@ -131,7 +132,7 @@ class RegisterRepositoryRealisationDatabaseSync(RegisterRepositoryInterface):
 
 
     def get_user(self, tg_id: int) -> ApiOutput:
-        # try:
+        try:
             response = self.api.get(
                 url_path=self.url + "/info_client", params={"tg_id": tg_id}
             )
@@ -151,13 +152,14 @@ class RegisterRepositoryRealisationDatabaseSync(RegisterRepositoryInterface):
   
             return ApiOutput(data=response, errors=error_check)
 
-        # except:
-        #     print("error - get_user")
+        except:
+            print("error - get_user")
+            return ApiOutput(data=None, errors=ErrorType(has_error=True, timeout=True))
+
 
     def update_user(self, data: User) -> ApiOutput:
         # try:
             response = self.api.put(url_path=self.url, data=data.json())
-            
 
 
             error_check = self.__error_checker(response)
@@ -166,7 +168,7 @@ class RegisterRepositoryRealisationDatabaseSync(RegisterRepositoryInterface):
                 response = json.loads(response.text)
 
                 if response:
-                    response = User(tg_id=response['tg_id'], phone=response['phone'], name=response['name'])
+                    response = User(tg_id=response['tg_id'])
 
                 else:
                     response = None
@@ -177,13 +179,12 @@ class RegisterRepositoryRealisationDatabaseSync(RegisterRepositoryInterface):
             return ApiOutput(data=response, errors=error_check)
         # except:
         #     print("error - update_user")
+        #     return ApiOutput(data=None, errors=ErrorType(has_error=True, timeout=True))
 
 
     def register_user(self, data: User) -> ApiOutput:
         try:
             response = self.api.post(url_path=self.url, data=data.json())
-
-            print('respa', response.text)
 
             error_check = self.__error_checker(response)
 
@@ -202,3 +203,4 @@ class RegisterRepositoryRealisationDatabaseSync(RegisterRepositoryInterface):
             return ApiOutput(data=response, errors=error_check)
         except:
             print("error - update_user")
+            return ApiOutput(data=None, errors=ErrorType(has_error=True, timeout=True))
